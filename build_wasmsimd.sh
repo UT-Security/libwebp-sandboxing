@@ -3,7 +3,7 @@ if [ "$WASI_SDK_PATH" == "" ]; then
 fi
 
 if [ "$SIMDE_PATH" == "" ]; then
-    SIMDE_PATH=/mnt/c/Users/wrv/research/wasmsimd/simde-0.7.6
+    SIMDE_PATH=/home/dev/research/simde-0.7.6
 fi
 
 make clean > /dev/null

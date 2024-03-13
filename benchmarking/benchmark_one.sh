@@ -1,4 +1,4 @@
-title="complete_decode"
+title="complete_decode_simde"
 cur_date=$(date +%s)
 
 # Number of times to run the individual experiment
