@@ -1,9 +1,11 @@
+WORK_DIR=/home/wrv/research/wasmperf
+
 if [ "$WASI_SDK_PATH" == "" ]; then
-    WASI_SDK_PATH=/home/dev/research/wasi-sdk-21.0
+    WASI_SDK_PATH=${WORK_DIR}/wasi-sdk-21.0
 fi
 
 if [ "$SIMDE_PATH" == "" ]; then
-    SIMDE_PATH=/home/dev/research/simde-0.7.6
+    SIMDE_PATH=${WORK_DIR}/simde-0.7.6
 fi
 
 make clean > /dev/null

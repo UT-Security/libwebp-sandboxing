@@ -1,9 +1,10 @@
 CC=clang
 OUT_DIR=bin
-WASI_SDK_PATH=/home/dev/research/wasi-sdk-21.0
-SIMDE_PATH=/home/dev/research/simde-0.7.6
-WABT_PATH=/home/dev/research/wabt-src
-UVWASI_PATH=/home/dev/research/uvwasi-0.0.20
+WORK_DIR=/home/wrv/research/wasmperf
+WASI_SDK_PATH=${WORK_DIR}/wasi-sdk-21.0
+SIMDE_PATH=${WORK_DIR}/simde-0.7.6
+WABT_PATH=${WORK_DIR}/wabt_src
+UVWASI_PATH=${WORK_DIR}/uvwasi-0.0.19
 
 WASI_LDFLAGS=-Wl,--export=malloc,--export=DecodeWebpImage -Wl,--no-entry -Wl,--growable-table -Wl,--stack-first -Wl,-z,stack-size=1048576
 WASI_CLANG=${WASI_SDK_PATH}/bin/clang
