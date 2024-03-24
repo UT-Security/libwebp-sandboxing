@@ -1,28 +1,43 @@
 # Benchmarking Sandboxed Libwebp
 
 ## Setup
-See [setup_test_environment.sh](./setup_test_environment.sh) with how to get the proper tools.
+See [setup_test_environment.sh](./setup_test_environment.sh) with how to get the required tools.
 
-## Environment
-
-We have two environments at the moment we're testing on:
+## Testing Environment
+We have two environments we are testing on:
 1. Debian 6.1.38 with an AMD EPYC 7713P 64-Core Processor, 128 threads, 1TB of RAM
 2. Ubuntu 22.04 Virtual Machine, Windows 11 Host, with an Intel i7-9850H 6-core Processor 12 threads, 4 GB RAM allocated.
 
-
 ## Tests
-
-We are currently focusing on lossy webp with no alpha and no animation. 
+We are currently focusing on lossy webp with no alpha and no animation.
 
 Because our goal is to sandbox libwebp in Firefox, we are using the same incremental decoder API inside of [decode_webp.c](./decode_webp.c) and measuring its performance.
 
-We have four build scripts: [build_native.sh](../build_native.sh), [build_nativesimd.sh](../build_nativesimd.sh), [build_wasm.sh](../build_wasm.sh), and [build_wasmsimd.sh](../build_wasmsimd.sh).
+### Building
+We have four build scripts: [build_native.sh](../build_native.sh), [build_nativesimd.sh](../build_nativesimd.sh), [build_wasm.sh](../build_wasm.sh), and [build_wasmsimd.sh](../build_wasmsimd.sh). These are used to build libwebp.
+
+We have a [Makefile](./Makefile) in this directory that builds the different versions of [decode_webp.c](./decode_webp.c) by linking to the respective libwebp library version.
+
+### Test Images
+
+We have [images](images/) that we use to compare performance. These images are meant to be representative of content web users may encounter.
+
+Images (from [Google](https://developers.google.com/speed/webp/gallery1))
+- [images/lossy/1.webp](images/lossy/1.webp): 550x368 px mountain picture, 30320 bytes.
+- [images/lossy/2.webp](images/lossy/2.webp): 550x404 px kayaking picture, 60600 bytes.
+- [images/lossy/3.webp](images/lossy/3.webp): 1280x720 px park run video frame, 203138 bytes.
+- [images/lossy/4.webp](images/lossy/4.webp): 1024x772 px flowering cherry tree, 176972 bytes.
+- [images/lossy/5.webp](images/lossy/5.webp): 1024x752 px fire spitter, 82698 bytes.
+
+Images from around the web:
+- [CVRT_1457_Starry_Night_HP_background.webp](images/lossy/6.webp): 3000x1996 px Starry Night, 473868 bytes. [ShutterStock details](https://www.shutterstock.com/image-photo/night-sky-filled-stars-including-big-2357121327)
+
 
 ## Libwebp Process
 
 Libwebp takes a compressed webp file and performs two key operations:
-1. Bitstream parsing
-2. Image reconstruction
+1. Bitstream Parsing (BP)
+2. Image Reconstruction (IR)
 
 The bitstream parsing decodes the prediction algorithm to use and the residual information from the compressed bitstream. The image reconstruction takes the prediction choice and residuals and produces the YUVA output.
 
@@ -31,7 +46,7 @@ At the moment we are just using the wasm-sandbox, but later we will rely on RLBo
 
 We take the libwebp source code, and compile it to WASM. Then we take this WASM and compile back to C using WABT's wasm2c. This final C code is compiled to native code.
 
-## Versions of libwebp we're Comparing
+## Versions of libwebp we Are Comparing
 
 We are running 6 different versions of [decode_webp.c](./decode_webp.c).
 
@@ -44,25 +59,22 @@ We are running 6 different versions of [decode_webp.c](./decode_webp.c).
 
 ## Positive Results
 
-With our test environment correctly building libwebp, here we note the changes we've made and their associated positive performance impact.
+With our test environment correctly building libwebp, here we note the changes we have made and their associated positive performance impact. We denote in the title whether the change primarily affects Bitstream Parsing (BP) or Image Reconstruction (IR).
 
-We also denote in the title whether the change primarily affects Bitstream Parsing (BP) or Image Reconstruction (IR).
+### Enabling SIMD Everywhere (SIMDe) (IR)
 
-### Enabling SIMD-everywhere (IR)
+With this [WABT pull request](https://github.com/WebAssembly/wabt/pull/2119), we can go from WASM to C by relying on SIMD Everywhere (SIMDe).
 
-With this [WABT pull request](https://github.com/WebAssembly/wabt/pull/2119), we can go from WASM to C by relying on SIMD-everywhere.
+SIMDe is a library that translates SIMD intrinsics across architectures. We primarily use it in wasm2c to convert WASMSIMD instructions to the native architecture we are compiling the C code to. We also use it when compiling to WASM to reuse intrinsics that exist in the underlying library. For libwebp, we use SIMDe in both ways.
 
-SIMD-everywhere is a library that translates SIMD intrinsics across architectures. We primarily use it in wasm2c to convert WASMSIMD instructions to the native architecture we're compiling the C code to. We also use it when compiling to WASM to reuse intrinsics that exist in the underlying library. For libwebp, we use SIMDe in both ways.
-
-Our primary change to libwebp to enable SIMDe is to add a new `WEBP_USE_SIMDE` definition in the code and use it when compiling the WASMSIMD library. This definitions changes the intrinsic `#include` files to use SIMD-everywhere's include files, and adjusts the logic around SSE2 and SSE4.1 checking to enable these code paths for WASMSIMD. We also pass in `SIMDE_ENABLE_NATIVE_ALIASES` to not have to rewrite each intrinsic call. Passing in `-msimd128` to the compiler ensures that WASMSIMD opcodes are emitted. We also need to update the libwebp CPU check to return success on any runtime check to determine whether intrinsics can be used.
+Our primary change to libwebp to enable SIMDe is to add a new `WEBP_USE_SIMDE` definition in the code and use it when compiling the WASMSIMD library. This definitions changes the intrinsic `#include` files to use SIMDe's include files, and adjusts the logic around SSE2 and SSE4.1 checking to enable these code paths for WASMSIMD. We also pass in `SIMDE_ENABLE_NATIVE_ALIASES` to not have to rewrite each intrinsic call. Passing in `-msimd128` to the compiler ensures that WASMSIMD opcodes are emitted. We also need to update the libwebp CPU check to return success on any runtime check to determine whether intrinsics can be used.
 
 #### Alternatives
 - We only rely on the SSE2 and SSE4.1 intrinsics, but libwebp also has intrinsics for MIPS and ARM. This requires some further testing.
-- We could rely on only `-msimd128` when compiling, but the autovectorization isn't able to do as well as SSE provided intrinsics.
-
+- We could rely on only `-msimd128` when compiling, but the autovectorization is not able to do as well as SSE provided intrinsics.
 
 ### Bitreader Bit Size (BP)
-When bitstream parsing, libwebp will cache some number of bytes in the VP8BitReader field `value_`. This field is made to be the size of one register, which is architecture dependent. For architectures that it's not familiar with, it defaults to `uint32_t`. In our case, this is failing to capture the 64-bit size registers of WASM, leading to unnecessary memcpys to load into `value_`. 
+When bitstream parsing, libwebp will cache some number of bytes in the VP8BitReader field `value_`. This field is made to be the size of one register, which is architecture dependent. For architectures that it is not familiar with, it defaults to `uint32_t`. In our case, this is failing to capture the 64-bit size registers of WASM, leading to unnecessary memcpys to load into `value_`.
 
 Inside of `src/utils/bit_reader_utils.h` we add a new condition to ensure the BITS definition is set to use its 64-bit representation on WASM.
 
@@ -84,26 +96,77 @@ When `USE_GENERIC_TREE` is set to to 1, the intra prediction parsing will read a
 According to how `USE_GENERIC_TREE` is defined, it is slower on ARM platforms, but works well on all others. We found in our testing on the AMD server machine that hard-coded tree (aka `USE_GENERIC_TREE` set to 0) is faster on all platforms. At the moment, we just enable it for WASM.
 
 ### Removing indirect function calls in libwebp (IR)
-Libwebp does runtime checks to determine whether SIMD functions will work on the machine it's running on. It then updates global function pointers that are called at image reconstruction time. While this is okay for native compilation, this pattern in WASM leads to using `CALL_INDIRECTs` which is an extra memory read to get the global function pointer then an extra bounds check to ensure the offset is within memory. This extra overhead has a significant impact during image reconstruction as each call to a SIMD-enhanced function eats this cost.
+Libwebp does runtime checks to determine whether SIMD functions will work on the machine it is running on. It then updates global function pointers that are called at image reconstruction time. While this is okay for native compilation, this pattern in WASM leads to using `CALL_INDIRECT`s, which is an extra memory read to get the global function pointer then an extra bounds check to ensure the offset is within memory. This extra overhead has a significant impact during image reconstruction as each call to a SIMD-enhanced function eats this cost.
 
-What we do is avoid the indirect call when compiling to WASM by not relying on the runtime checks and instead using the SIMD-enhanced functions directly. This has the benefit of helping both the WASM and WASMSIMD versions. When compiling from the wasm2c code back to Native, the SIMD-everywhere can handle the case of the host not adequately supporting a particular SIMD instruction set.
-
-
+What we do is avoid the indirect call when compiling to WASM by not relying on the runtime checks and instead using the SIMD-enhanced functions directly. This has the benefit of helping both the WASM and WASMSIMD versions. When compiling from the wasm2c code back to Native, the SIMDe can handle the case of the host not adequately supporting a particular SIMD instruction set.
 
 ### VP8BitReader Aliasing (BP)
+Libwebp has some function calls with `WEBP_RESTRICT` modifiers on variable names. Inside of [src/dsp/dsp.h](../src/dsp/dsp.h) this is defined to use the `restrict` type qualifier if the compiler supports it (for GNUC use `__restrict__` and on MSC use `__restrict`). The `restrict` qualifier tells the compiler that the pointer is the only pointer referencing an object, so there is no concern about potential race conditions we do not need to load the pointer again. We primarily focus on the `WEBP_RESTRICT` modifier for pointers to VP8BitReader objects, and this is the key structure used when parsing the bitstream.
+
+When compiling to WASM, the `WEBP_RESTRICT` qualifier is indeed used when producing the WASM output, but that information is lost when converted to C and subsequently to native. This means that we have an extra load in our final output each time we try to read from VP8BitReader. **A research question here is what would be the best way to communicate the `restrict` qualifier in our pipeline?**
+
+What we do to manually mimic what `WEBP_RESTRICT` does is rewrite libwebp to not load the pointer on each function call by aliasing the VP8BitReader object's variables to local variables, and then updating the VP8BitReader object at the end with the local variables. This also required making new versions of VP8GetBit and friends to take in the aliased parameters. All this rewriting leads to changes in Native output as well, as we would like to avoid redundant code as much as possible.
+
+The aliasing had mixed results, and in this section we talk about the wins. Later in the [Negative Results Section](#aliasing), we talk about where this did not work.
 
 #### VP8ParseIntraModeRow
 
-### WABT Changes 
+VP8ParseIntraModeRow lives in [src/dec/tree_dec.c](../src/dec/tree_dec.c). This function is parsing the bitstream to recover the Intra mode to use for each macroblock. For each macroblock in a row, it calls ParseIntraMode which recovers the either 4x4 or 16x16 Luma Intra mode, and the 16x16 Chroma Intra mode used. It directly calls `VP8GetBit`, which during compilation is inlined in ParseIntraMode, which itself gets inlined inside VP8ParseIntraModeRow.
+
+Aliasing this function consists of writing the following wrapper in VP8ParseIntraModeRow:
+```c
+int VP8ParseIntraModeRow(VP8BitReader* const br, VP8Decoder* const dec) {
+  int mb_x;
+  // Turn the values into local variables
+  bit_t value_ = br->value_;
+  range_t range_ = br->range_;
+  int bits_ = br->bits_;
+  const uint8_t* buf_ = br->buf_;
+  const uint8_t* buf_end_ = br->buf_end_;
+  const uint8_t* buf_max_ = br->buf_max_;
+  int eof_ = br->eof_;
+  //
+  for (mb_x = 0; mb_x < dec->mb_w_; ++mb_x) {
+    ParseIntraMode(br, dec, mb_x);
+  }
+  // Move the local variables back into the object
+  br->value_ = value_;
+  br->range_ = range_;
+  br->bits_ = bits_;
+  br->buf_ = buf_;
+  br->buf_end_ = buf_end_;
+  br->buf_max_ = buf_max_;
+  br->eof_ = eof_;
+  //
+  return !dec->br_.eof_;
+}
+```
+
+We also 
+
+
+### WABT Changes
+Here we describe some not-yet-upstream features in WABT that we used to improve performance. These are not changes to libwebp, but changes to WABT itself that improves our stance.
 
 #### Removing Forced Reads
+WABT Pull Request [2357](https://github.com/WebAssembly/wabt/pull/2357).
+
+At the moment, all reads in WASM are required to execute. Wasm2c enforces this by inserting inline asm that forces the result of the load to be live, even if it is never used. This pull request removes the forced read so that if a read value is never used, then it can be optimized out.
+
+The discussion around the PR centers around whether it makes sense to include this WASM spec-non-compliance within the output. This PR is currently on hold, pending a review from the WASM spec designers.
+
+The optimization here comes from the fact that an extra load is removed for each access.
 
 #### GS/FS registers via Segue
+WABT PULL Request [2395](https://github.com/WebAssembly/wabt/pull/2395).
 
+This pull requests "uses the x86 segment register to perform memory accesses to WASM's linear heap." Instead of doing a load for each time we need to access the linear memory, the pointer will live in the gs/fs register throughout the lifetime of the function.
+
+At the moment, this only works on Linux x86 machines, which is limiting the adoption of the PR into WABT.
 
 ## Negative Results
 
-There are some changes we tried that hurt performance, which we log here.
+There are some changes we tried that had a negative impact on performance, which we log here.
 
 ### Aliasing
 

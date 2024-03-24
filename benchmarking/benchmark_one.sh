@@ -1,6 +1,7 @@
 title="complete_decode_simde_BITS56"
 cur_date=$(date +%s)
 
+cur_dir=$(pwd)
 # Number of times to run the individual experiment
 N=20
 # Number of times to run the overall experiment
@@ -17,7 +18,7 @@ if [ "$1" = "build" ]; then
     echo "Building!"
     cd ..
     ./build.sh
-    cd benchmarking_code
+    cd ${cur_dir}
     # Build the local binaries
     make all -B
 fi
