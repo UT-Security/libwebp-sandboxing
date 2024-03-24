@@ -31,7 +31,7 @@ Images (from [Google](https://developers.google.com/speed/webp/gallery1))
 
 Images from around the web:
 - [CVRT_1457_Starry_Night_HP_background.webp](images/lossy/6.webp): 3000x1996 px Starry Night, 473868 bytes. [ShutterStock details](https://www.shutterstock.com/image-photo/night-sky-filled-stars-including-big-2357121327)
-
+- [test.webp](images/lossy/7.webp): 128x128 px Mountain image, 4928 bytes. From [libwebp-test-data repo](https://chromium.googlesource.com/webm/libwebp-test-data/+/refs/heads/main/test.webp).
 
 ## Libwebp Process
 
@@ -110,7 +110,6 @@ What we do to manually mimic what `WEBP_RESTRICT` does is rewrite libwebp to not
 The aliasing had mixed results, and in this section we talk about the wins. Later in the [Negative Results Section](#aliasing), we talk about where this did not work.
 
 #### VP8ParseIntraModeRow
-
 VP8ParseIntraModeRow lives in [src/dec/tree_dec.c](../src/dec/tree_dec.c). This function is parsing the bitstream to recover the Intra mode to use for each macroblock. For each macroblock in a row, it calls ParseIntraMode which recovers the either 4x4 or 16x16 Luma Intra mode, and the 16x16 Chroma Intra mode used. It directly calls `VP8GetBit`, which during compilation is inlined in ParseIntraMode, which itself gets inlined inside VP8ParseIntraModeRow.
 
 Aliasing this function consists of writing the following wrapper in VP8ParseIntraModeRow:
@@ -142,7 +141,7 @@ int VP8ParseIntraModeRow(VP8BitReader* const br, VP8Decoder* const dec) {
 }
 ```
 
-We also 
+We also manually modify inline ParseIntraMode into VP8ParseIntraModeRow, and create a new VP8GetBit function that takes in aliased parameters rather than a VP8BitReader object. Because this new function is being inlined, it is not a concern whether we are stressing the ABI to push registers onto the stack because it all remains local.
 
 
 ### WABT Changes
@@ -170,8 +169,29 @@ There are some changes we tried that had a negative impact on performance, which
 
 ### Aliasing
 
+We describe aliasing [above](#vp8bitreader-aliasing-bp). We found that in some cases, aliasing was not sufficient to recover performance, and led to a degradation of performance across all versions.
+
 #### VP8ParseProba
+##### VP8ParseProba Background
+VP8ParseProba is in [src/dec/tree_dec.c](../src/dec/tree_dec.c). This function is called to initialize the probability table used in VP8's entropy encoding. If a bit in the bitstream is 0, then it will parse the byte-sized probability from the bitstream, but if it is 1 then it will use one of the presets.
+
+The challenge with this function is that it relies on more than just VP8GetBit to parse the bitstream; we also have VP8Get and VP8GetValue.
+
+VP8GetValue is a wrapper around VP8GetBit that is defined in [src/utils/bit_reader_utils.c](../src/utils/bit_reader_utils.c) that takes in `bits` parameter which is the length to read from the bitstream. It calls VP8GetBit `bits` times with equal (0x80) probability.
+
+VP8Get is a wrapper around VP8GetValue with `bits` set to 1, defined in [src/utils/bit_reader_utils.h](../src/utils/bit_reader_utils.h). **It's unclear why this is called instead of VP8GetBit**.
+
+The entire bitstream reader has a debugging feature where you can pass in a Label to emit to see where the bitstream is getting parsed. You can enable this in [bit_reader_utils.h](../src/utils/bit_reader_utils.h) by setting `BITTRACE` to 1 or 2.
+- VP8Get, VP8GetValue, and VP8GetSignedValue are only ever called with the label "global-header"
+- VP8GetBit is called with the labels: segments, skip, block-size, pred-modes, pred-modes-uv, global-header, and coeffs
+- VP8GetBitAlt and VP8GetSigned are only called with the label "coeffs"
+
+##### VP8ParseProba Aliasing
+We tried to alias this function by only calling the modified version of VP8GetBit we made for VP8ParseIntraMode, and removing the wrapper functions VP8Get and VP8GetValue with a direct call to VP8GetBit with the appropriate parameters.
+
+Unfortunately, our approach led to a performance degradation across all versions.
 
 #### VP8DecodeMB
+VP8DecodeMB is in [src/dec/vp8_dec.c](../src/dec/vp8_dec.c). This is a hot function that decodes the residual information inside of macroblocks. It inlines the function ParseResiduals, which calls the indirect function GetCoeffs.
 
-
+We aliased the parameters to GetCoeffs from ParseResiduals, and I think the came from the fact that we were aliasing in the wrong place. It's worth revisiting this aliasing because it is an important function to the bitstream decoding.
