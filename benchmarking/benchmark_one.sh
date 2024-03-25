@@ -1,4 +1,4 @@
-title="complete_decode_simde_BITS56"
+title="complete_decode_simde_BITS56_GENERIC_TREE"
 cur_date=$(date +%s)
 
 cur_dir=$(pwd)

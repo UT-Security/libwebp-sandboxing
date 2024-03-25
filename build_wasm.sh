@@ -1,8 +1,12 @@
-
-WORK_DIR=/home/wrv/research/wasmperf
-
+if [ "$WORK_DIR" == "" ]; then
+	WORK_DIR=/home/wrv/research/wasmperf
+fi
 if [ "$WASI_SDK_PATH" == "" ]; then
     WASI_SDK_PATH=${WORK_DIR}/wasi-sdk-21.0
+fi
+
+if [ "$WASM_COMPILER_DEFINES" == "" ]; then
+    WASM_COMPILER_DEFINES="-DWEBP_WASM_GENERIC_TREE -DWEBP_WASM_BITSIZE"
 fi
 
 make clean > /dev/null
@@ -12,7 +16,7 @@ curprefix=$(pwd)/libwebp_wasm
 mkdir -p ${curprefix}
 
 
-CFLAGS="-O2 -DWEBP_WASM -D_WASI_EMULATED_SIGNAL" \
+CFLAGS="-O2 ${WASM_COMPILER_DEFINES} -D_WASI_EMULATED_SIGNAL" \
 	LDFLAGS="-L${WASI_SDK_PATH}/share/wasi-sysroot/lib \
 		-Wl,--no-entry \
 		-Wl,--export-all \

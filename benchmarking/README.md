@@ -61,8 +61,7 @@ We are running 6 different versions of [decode_webp.c](./decode_webp.c).
 
 With our test environment correctly building libwebp, here we note the changes we have made and their associated positive performance impact. We denote in the title whether the change primarily affects Bitstream Parsing (BP) or Image Reconstruction (IR).
 
-### Enabling SIMD Everywhere (SIMDe) (IR)
-
+### Enabling SIMD Everywhere (SIMDe) (IR): WEBP_USE_SIMDE
 With this [WABT pull request](https://github.com/WebAssembly/wabt/pull/2119), we can go from WASM to C by relying on SIMD Everywhere (SIMDe).
 
 SIMDe is a library that translates SIMD intrinsics across architectures. We primarily use it in wasm2c to convert WASMSIMD instructions to the native architecture we are compiling the C code to. We also use it when compiling to WASM to reuse intrinsics that exist in the underlying library. For libwebp, we use SIMDe in both ways.
@@ -73,7 +72,7 @@ Our primary change to libwebp to enable SIMDe is to add a new `WEBP_USE_SIMDE` d
 - We only rely on the SSE2 and SSE4.1 intrinsics, but libwebp also has intrinsics for MIPS and ARM. This requires some further testing.
 - We could rely on only `-msimd128` when compiling, but the autovectorization is not able to do as well as SSE provided intrinsics.
 
-### Bitreader Bit Size (BP)
+### Bitreader Bit Size (BP): 
 When bitstream parsing, libwebp will cache some number of bytes in the VP8BitReader field `value_`. This field is made to be the size of one register, which is architecture dependent. For architectures that it is not familiar with, it defaults to `uint32_t`. In our case, this is failing to capture the 64-bit size registers of WASM, leading to unnecessary memcpys to load into `value_`.
 
 Inside of `src/utils/bit_reader_utils.h` we add a new condition to ensure the BITS definition is set to use its 64-bit representation on WASM.
@@ -143,6 +142,63 @@ int VP8ParseIntraModeRow(VP8BitReader* const br, VP8Decoder* const dec) {
 
 We also manually modify inline ParseIntraMode into VP8ParseIntraModeRow, and create a new VP8GetBit function that takes in aliased parameters rather than a VP8BitReader object. Because this new function is being inlined, it is not a concern whether we are stressing the ABI to push registers onto the stack because it all remains local.
 
+This is the modified VP8GetBit function that does not take in a VP8BitReader object:
+```c
+static WEBP_INLINE int VP8GetBit_alias(bit_t *value, range_t *range, int *bits, const uint8_t** buf, const uint8_t** buf_end, const uint8_t** buf_max, int* eof,
+                                 int prob) {
+  // Don't move this declaration! It makes a big speed difference to store
+  // 'range' *before* calling VP8LoadNewBytes(), even if this function doesn't
+  // alter br->range_ value.
+  range_t range_start = *range;
+  if (*bits < 0) {
+    assert(*buf != NULL);
+    // Read 'BITS' bits at a time if possible.
+    if (*buf < *buf_max) {
+      // convert memory type to register type (with some zero'ing!)
+      bit_t bits_start;
+      lbit_t in_bits;
+      memcpy(&in_bits, *buf, sizeof(in_bits));
+      *buf += BITS >> 3;
+      bits_start = __builtin_bswap64(in_bits);
+      bits_start >>= 64 - BITS;
+      *value = bits_start | (*value << BITS);
+      *bits += BITS;
+    } else {
+      if (*buf < *buf_end) {
+        *bits += 8;
+        *value = (bit_t)(*(*buf)++) | (*value << 8);
+      } else if (!*eof) {
+        *value <<= 8;
+        *bits += 8;
+        *eof = 1;
+      } else {
+        *bits = 0;  // This is to avoid undefined behavior with shifts.
+      }
+    }
+  }
+  {
+    const int pos = *bits;
+    const range_t split = (range_start * prob) >> 8;
+    const range_t value_start = (range_t)(*value >> pos);
+    const int bit = (value_start > split);
+    if (bit) {
+      range_start -= split;
+      *value -= (bit_t)(split + 1) << pos;
+    } else {
+      range_start = split + 1;
+    }
+    {
+      const int shift = 24 ^ __builtin_clz(range_start);
+      range_start <<= shift;
+      *bits -= shift;
+    }
+    *range = range_start - 1;
+    return bit;
+  }
+}
+```
+It also incorporates the dependent functions VP8LoadNewBytes and VP8LoadFinalBytes and chooses some defaults around `BIT_SIZE`.s
+
 
 ### WABT Changes
 Here we describe some not-yet-upstream features in WABT that we used to improve performance. These are not changes to libwebp, but changes to WABT itself that improves our stance.
@@ -152,7 +208,7 @@ WABT Pull Request [2357](https://github.com/WebAssembly/wabt/pull/2357).
 
 At the moment, all reads in WASM are required to execute. Wasm2c enforces this by inserting inline asm that forces the result of the load to be live, even if it is never used. This pull request removes the forced read so that if a read value is never used, then it can be optimized out.
 
-The discussion around the PR centers around whether it makes sense to include this WASM spec-non-compliance within the output. This PR is currently on hold, pending a review from the WASM spec designers.
+The discussion around the PR centers around whether it makes sense to include this WASM spec-non-compliance within the output. This PR is currently on hold, pending a review from the WASM spec designers. 
 
 The optimization here comes from the fact that an extra load is removed for each access.
 

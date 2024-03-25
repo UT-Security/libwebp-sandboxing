@@ -242,7 +242,7 @@ static int mipsCPUInfo(CPUFeature feature) {
 WEBP_EXTERN VP8CPUInfo VP8GetCPUInfo;
 VP8CPUInfo VP8GetCPUInfo = mipsCPUInfo;
 
-#elif defined(WEBP_USE_SIMDE) && defined(WEBP_WASM)
+#elif defined(WEBP_USE_SIMDE)
 
 static int simde_feature(CPUFeature feature) {
   // Avoid the GetCoeffsAlt code

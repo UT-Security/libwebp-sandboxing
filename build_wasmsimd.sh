@@ -1,11 +1,14 @@
-WORK_DIR=/home/wrv/research/wasmperf
-
+if [ "$WORK_DIR" == "" ]; then
+	WORK_DIR=/home/wrv/research/wasmperf
+fi
 if [ "$WASI_SDK_PATH" == "" ]; then
     WASI_SDK_PATH=${WORK_DIR}/wasi-sdk-21.0
 fi
-
 if [ "$SIMDE_PATH" == "" ]; then
     SIMDE_PATH=${WORK_DIR}/simde-0.7.6
+fi
+if [ "$WASM_COMPILER_DEFINES" == "" ]; then
+    WASM_COMPILER_DEFINES="-DWEBP_WASM_GENERIC_TREE -DWEBP_WASM_BITSIZE"
 fi
 
 make clean > /dev/null
@@ -15,7 +18,7 @@ curprefix=$(pwd)/libwebp_wasmsimd
 mkdir -p ${curprefix}
 
 
-CFLAGS="-O2 -msimd128 -DWEBP_WASM -DWEBP_USE_SIMDE -DSIMDE_ENABLE_NATIVE_ALIASES -I${SIMDE_PATH} -D_WASI_EMULATED_SIGNAL" \
+CFLAGS="-O2 ${WASM_COMPILER_DEFINES} -D_WASI_EMULATED_SIGNAL -msimd128 -DWEBP_USE_SIMDE -DSIMDE_ENABLE_NATIVE_ALIASES -I${SIMDE_PATH}" \
 	LDFLAGS="-L${WASI_SDK_PATH}/share/wasi-sysroot/lib \
 		-Wl,--no-entry \
 		-Wl,--export-all \

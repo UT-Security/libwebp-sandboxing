@@ -69,7 +69,7 @@ extern "C" {
 #define BITS 56
 #elif defined(__mips__)                        // MIPS
 #define BITS 24
-#elif defined(WEBP_WASM)                       // WASM
+#elif defined(WEBP_WASM_BITSIZE)               // WASM
 #define BITS 56
 #else                                          // reasonable default
 #define BITS 24
