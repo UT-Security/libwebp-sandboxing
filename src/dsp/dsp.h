@@ -203,6 +203,71 @@ extern VP8DecIdct VP8TransformDC;
 extern VP8DecIdct VP8TransformDCUV;
 extern VP8WHT VP8TransformWHT;
 
+// Explicitly define functions that were previously called indirectly
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL) 
+void TransformTwo_C(const int16_t* in, uint8_t* dst, int do_two);
+void TransformAC3_C(const int16_t* in, uint8_t* dst);
+void TransformDC_C(const int16_t* in, uint8_t* dst);
+void TransformUV_C(const int16_t* in, uint8_t* dst);
+void TransformDCUV_C(const int16_t* in, uint8_t* dst);
+
+void SimpleHFilter16_C(uint8_t* p, int stride, int thresh);
+void SimpleHFilter16i_C(uint8_t* p, int stride, int thresh);
+void SimpleVFilter16_C(uint8_t* p, int stride, int thresh);
+void SimpleVFilter16i_C(uint8_t* p, int stride, int thresh);
+
+void HFilter16_C(uint8_t* p, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+void HFilter16i_C(uint8_t* p, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+void VFilter16_C(uint8_t* p, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+void VFilter16i_C(uint8_t* p, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+
+void VFilter8_C(uint8_t* u, uint8_t* v, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+void VFilter8i_C(uint8_t* u, uint8_t* v, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+void HFilter8_C(uint8_t* u, uint8_t* v, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+void HFilter8i_C(uint8_t* u, uint8_t* v, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+
+void DitherCombine8x8_C(const uint8_t* dither, uint8_t* dst,
+                               int dst_stride);
+
+void TransformWHT_C(const int16_t* in, int16_t* out);
+
+// Define SIMDe functions
+#if defined(WEBP_USE_SIMDE)
+void Transform_SSE2(const int16_t* in, uint8_t* dst, int do_two);
+
+void SimpleHFilter16_SSE2(uint8_t* p, int stride, int thresh);
+void SimpleHFilter16i_SSE2(uint8_t* p, int stride, int thresh);
+void SimpleVFilter16_SSE2(uint8_t* p, int stride, int thresh);
+void SimpleVFilter16i_SSE2(uint8_t* p, int stride, int thresh);
+
+void HFilter16_SSE2(uint8_t* p, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+void HFilter16i_SSE2(uint8_t* p, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+void VFilter16_SSE2(uint8_t* p, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+void VFilter16i_SSE2(uint8_t* p, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+
+void VFilter8_SSE2(uint8_t* u, uint8_t* v, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+void VFilter8i_SSE2(uint8_t* u, uint8_t* v, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+void HFilter8_SSE2(uint8_t* u, uint8_t* v, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+void HFilter8i_SSE2(uint8_t* u, uint8_t* v, int stride,
+                           int thresh, int ithresh, int hev_thresh);
+#endif // WEBP_USE_SIMDE
+#endif // WEBP_WASM_DIRECT_FUNCTION_CALL
+
 #define WEBP_TRANSFORM_AC3_C1 20091
 #define WEBP_TRANSFORM_AC3_C2 35468
 #define WEBP_TRANSFORM_AC3_MUL1(a) ((((a) * WEBP_TRANSFORM_AC3_C1) >> 16) + (a))

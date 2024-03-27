@@ -34,7 +34,10 @@
 //------------------------------------------------------------------------------
 // Transforms (Paragraph 14.4)
 
-static void Transform_SSE2(const int16_t* in, uint8_t* dst, int do_two) {
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void Transform_SSE2(const int16_t* in, uint8_t* dst, int do_two) {
   // This implementation makes use of 16-bit fixed point versions of two
   // multiply constants:
   //    K1 = sqrt(2) * cos (pi/8) ~= 85627 / 2^16
@@ -592,7 +595,10 @@ static WEBP_INLINE void Store16x4_SSE2(const __m128i* const p1,
 //------------------------------------------------------------------------------
 // Simple In-loop filtering (Paragraph 15.2)
 
-static void SimpleVFilter16_SSE2(uint8_t* p, int stride, int thresh) {
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void SimpleVFilter16_SSE2(uint8_t* p, int stride, int thresh) {
   // Load
   __m128i p1 = _mm_loadu_si128((__m128i*)&p[-2 * stride]);
   __m128i p0 = _mm_loadu_si128((__m128i*)&p[-stride]);
@@ -606,7 +612,10 @@ static void SimpleVFilter16_SSE2(uint8_t* p, int stride, int thresh) {
   _mm_storeu_si128((__m128i*)&p[0], q0);
 }
 
-static void SimpleHFilter16_SSE2(uint8_t* p, int stride, int thresh) {
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void SimpleHFilter16_SSE2(uint8_t* p, int stride, int thresh) {
   __m128i p1, p0, q0, q1;
 
   p -= 2;  // beginning of p1
@@ -616,7 +625,10 @@ static void SimpleHFilter16_SSE2(uint8_t* p, int stride, int thresh) {
   Store16x4_SSE2(&p1, &p0, &q0, &q1, p, p + 8 * stride, stride);
 }
 
-static void SimpleVFilter16i_SSE2(uint8_t* p, int stride, int thresh) {
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void SimpleVFilter16i_SSE2(uint8_t* p, int stride, int thresh) {
   int k;
   for (k = 3; k > 0; --k) {
     p += 4 * stride;
@@ -624,7 +636,10 @@ static void SimpleVFilter16i_SSE2(uint8_t* p, int stride, int thresh) {
   }
 }
 
-static void SimpleHFilter16i_SSE2(uint8_t* p, int stride, int thresh) {
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void SimpleHFilter16i_SSE2(uint8_t* p, int stride, int thresh) {
   int k;
   for (k = 3; k > 0; --k) {
     p += 4;
@@ -688,7 +703,10 @@ static WEBP_INLINE void ComplexMask_SSE2(const __m128i* const p1,
 }
 
 // on macroblock edges
-static void VFilter16_SSE2(uint8_t* p, int stride,
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void VFilter16_SSE2(uint8_t* p, int stride,
                            int thresh, int ithresh, int hev_thresh) {
   __m128i t1;
   __m128i mask;
@@ -714,7 +732,10 @@ static void VFilter16_SSE2(uint8_t* p, int stride,
   _mm_storeu_si128((__m128i*)&p[+2 * stride], q2);
 }
 
-static void HFilter16_SSE2(uint8_t* p, int stride,
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void HFilter16_SSE2(uint8_t* p, int stride,
                            int thresh, int ithresh, int hev_thresh) {
   __m128i mask;
   __m128i p3, p2, p1, p0, q0, q1, q2, q3;
@@ -734,7 +755,10 @@ static void HFilter16_SSE2(uint8_t* p, int stride,
 }
 
 // on three inner edges
-static void VFilter16i_SSE2(uint8_t* p, int stride,
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void VFilter16i_SSE2(uint8_t* p, int stride,
                             int thresh, int ithresh, int hev_thresh) {
   int k;
   __m128i p3, p2, p1, p0;   // loop invariants
@@ -767,7 +791,10 @@ static void VFilter16i_SSE2(uint8_t* p, int stride,
   }
 }
 
-static void HFilter16i_SSE2(uint8_t* p, int stride,
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void HFilter16i_SSE2(uint8_t* p, int stride,
                             int thresh, int ithresh, int hev_thresh) {
   int k;
   __m128i p3, p2, p1, p0;   // loop invariants
@@ -796,7 +823,10 @@ static void HFilter16i_SSE2(uint8_t* p, int stride,
 }
 
 // 8-pixels wide variant, for chroma filtering
-static void VFilter8_SSE2(uint8_t* u, uint8_t* v, int stride,
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void VFilter8_SSE2(uint8_t* u, uint8_t* v, int stride,
                           int thresh, int ithresh, int hev_thresh) {
   __m128i mask;
   __m128i t1, p2, p1, p0, q0, q1, q2;
@@ -821,7 +851,10 @@ static void VFilter8_SSE2(uint8_t* u, uint8_t* v, int stride,
   STOREUV(q2, u, v, 2 * stride);
 }
 
-static void HFilter8_SSE2(uint8_t* u, uint8_t* v, int stride,
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void HFilter8_SSE2(uint8_t* u, uint8_t* v, int stride,
                           int thresh, int ithresh, int hev_thresh) {
   __m128i mask;
   __m128i p3, p2, p1, p0, q0, q1, q2, q3;
@@ -841,7 +874,10 @@ static void HFilter8_SSE2(uint8_t* u, uint8_t* v, int stride,
   Store16x4_SSE2(&q0, &q1, &q2, &q3, u, v, stride);
 }
 
-static void VFilter8i_SSE2(uint8_t* u, uint8_t* v, int stride,
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void VFilter8i_SSE2(uint8_t* u, uint8_t* v, int stride,
                            int thresh, int ithresh, int hev_thresh) {
   __m128i mask;
   __m128i t1, t2, p1, p0, q0, q1;
@@ -867,7 +903,10 @@ static void VFilter8i_SSE2(uint8_t* u, uint8_t* v, int stride,
   STOREUV(q1, u, v, 1 * stride);
 }
 
-static void HFilter8i_SSE2(uint8_t* u, uint8_t* v, int stride,
+#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+static
+#endif
+void HFilter8i_SSE2(uint8_t* u, uint8_t* v, int stride,
                            int thresh, int ithresh, int hev_thresh) {
   __m128i mask;
   __m128i t1, t2, p1, p0, q0, q1;

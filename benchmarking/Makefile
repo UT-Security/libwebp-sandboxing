@@ -42,14 +42,14 @@ clean:
 	rm bin/decode_webp_wasm
 	rm bin/decode_webp_wasmsimd
 
-${OUT_DIR}/decode_webp_native: main_native.c decode_webp.c
+${OUT_DIR}/decode_webp_native: main_native.c decode_webp.c ../libwebp_native/lib/libwebp.a
 	${dir_guard}
 	${CC} ${COMPILE_FLAGS} $^ -o $@ -I../libwebp_native/include/ -L../libwebp_native/lib/ -lwebp
 
-${OUT_DIR}/decode_webp_nativesimd: main_native.c decode_webp.c
+${OUT_DIR}/decode_webp_nativesimd: main_native.c decode_webp.c ../libwebp_nativesimd/lib/libwebp.a
 	${CC} ${COMPILE_FLAGS} $^ -o $@ -I../libwebp_nativesimd/include/ -L../libwebp_nativesimd/lib/ -lwebp
 
-decode_webp_wasm.wasm: decode_webp.c
+decode_webp_wasm.wasm: decode_webp.c ../libwebp_wasm/lib/libwebp.a
 	${WASI_CLANG} ${WASI_LDFLAGS} ${WASI_FLAGS} $^ -o $@ -I../libwebp_wasm/include/ -L../libwebp_wasm/lib/ -lwebp ${OUTPUT_IMAGE} ${INCREMENTAL}
 
 decode_webp_wasm.c: decode_webp_wasm.wasm
@@ -58,7 +58,7 @@ decode_webp_wasm.c: decode_webp_wasm.wasm
 ${OUT_DIR}/decode_webp_wasm: main_wasm.c decode_webp_wasm.c
 	${CC} ${COMPILE_FLAGS} -o $@ $^ ${WASM2C_DEP} ${UVWASI_RESOURCES}
 
-decode_webp_wasmsimd.wasm: decode_webp.c
+decode_webp_wasmsimd.wasm: decode_webp.c ../libwebp_wasmsimd/lib/libwebp.a
 	${WASI_CLANG} ${WASI_LDFLAGS} ${WASI_FLAGS} $^ -o $@ -I../libwebp_wasmsimd/include/ -L../libwebp_wasmsimd/lib/ -lwebp ${OUTPUT_IMAGE} ${INCREMENTAL} ${WASI_SIMD_FLAGS}
 
 decode_webp_wasmsimd.c: decode_webp_wasmsimd.wasm

@@ -18,6 +18,94 @@
 //------------------------------------------------------------------------------
 // Main reconstruction function.
 
+// Direct function calls
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+#define VP8Transform TransformTwo_C
+#define VP8TransformAC3 TransformAC3_C
+#define VP8TransformDC TransformDC_C
+#define VP8TransformUV TransformUV_C
+#define VP8TransformDCUV TransformDCUV_C
+
+#define VP8DitherCombine8x8 DitherCombine8x8_C
+
+#define VP8SimpleHFilter16  SimpleHFilter16_C
+#define VP8SimpleHFilter16i SimpleHFilter16i_C
+#define VP8SimpleVFilter16  SimpleVFilter16_C
+#define VP8SimpleVFilter16i SimpleVFilter16i_C
+
+#define VP8HFilter16  HFilter16_C
+#define VP8HFilter8   HFilter8_C
+#define VP8HFilter16i HFilter16i_C
+#define VP8HFilter8i  HFilter8i_C
+#define VP8VFilter16  VFilter16_C
+#define VP8VFilter8   VFilter8_C
+#define VP8VFilter16i VFilter16i_C
+#define VP8VFilter8i  VFilter8i_C
+
+/*
+  VP8PredLuma4[0]
+  VP8PredLuma4[1]
+  VP8PredLuma4[2]
+  VP8PredLuma4[3]
+  VP8PredLuma4[4]
+  VP8PredLuma4[5]
+  VP8PredLuma4[6]
+  VP8PredLuma4[7]
+  VP8PredLuma4[8]
+  VP8PredLuma4[9]
+
+  VP8PredLuma16[0]
+  VP8PredLuma16[1]
+  VP8PredLuma16[2]
+  VP8PredLuma16[3]
+  VP8PredLuma16[4]
+  VP8PredLuma16[5]
+  VP8PredLuma16[6]
+
+  VP8PredChroma8[0]
+  VP8PredChroma8[1]
+  VP8PredChroma8[2]
+  VP8PredChroma8[3]
+  VP8PredChroma8[4]
+  VP8PredChroma8[5]
+  VP8PredChroma8[6]
+*/
+
+// Direct SIMDe functions
+#if defined(WEBP_USE_SIMDE)
+#undef VP8Transform
+#undef VP8SimpleHFilter16
+#undef VP8SimpleHFilter16i
+#undef VP8SimpleVFilter16
+#undef VP8SimpleVFilter16i
+#undef VP8HFilter16
+#undef VP8HFilter8
+#undef VP8HFilter16i
+#undef VP8HFilter8i
+#undef VP8VFilter16
+#undef VP8VFilter8
+#undef VP8VFilter16i
+#undef VP8VFilter8i
+
+#define VP8Transform Transform_SSE2
+
+#define VP8SimpleHFilter16  SimpleHFilter16_SSE2
+#define VP8SimpleHFilter16i SimpleHFilter16i_SSE2
+#define VP8SimpleVFilter16  SimpleVFilter16_SSE2
+#define VP8SimpleVFilter16i SimpleVFilter16i_SSE2
+
+#define VP8HFilter16  HFilter16_SSE2
+#define VP8HFilter8   HFilter8_SSE2
+#define VP8HFilter16i HFilter16i_SSE2
+#define VP8HFilter8i  HFilter8i_SSE2
+#define VP8VFilter16  VFilter16_SSE2
+#define VP8VFilter8   VFilter8_SSE2
+#define VP8VFilter16i VFilter16i_SSE2
+#define VP8VFilter8i  VFilter8i_SSE2
+
+#endif
+#endif
+
 static const uint16_t kScan[16] = {
   0 +  0 * BPS,  4 +  0 * BPS, 8 +  0 * BPS, 12 +  0 * BPS,
   0 +  4 * BPS,  4 +  4 * BPS, 8 +  4 * BPS, 12 +  4 * BPS,
