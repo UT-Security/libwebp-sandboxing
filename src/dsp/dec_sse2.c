@@ -204,7 +204,7 @@ void Transform_SSE2(const int16_t* in, uint8_t* dst, int do_two) {
 
 #if (USE_TRANSFORM_AC3 == 1)
 
-static void TransformAC3(const int16_t* in, uint8_t* dst) {
+static void TransformAC3_SSE2(const int16_t* in, uint8_t* dst) {
   const __m128i A = _mm_set1_epi16(in[0] + 4);
   const __m128i c4 = _mm_set1_epi16(WEBP_TRANSFORM_AC3_MUL2(in[4]));
   const __m128i d4 = _mm_set1_epi16(WEBP_TRANSFORM_AC3_MUL1(in[4]));
@@ -940,7 +940,7 @@ void HFilter8i_SSE2(uint8_t* u, uint8_t* v, int stride,
 //   where: AC = (a + b + 1) >> 1,   BC = (b + c + 1) >> 1
 //   and ab = a ^ b, bc = b ^ c, lsb = (AC^BC)&1
 
-static void VE4_SSE2(uint8_t* dst) {    // vertical
+static void VE4_SSE2(uint8_t* dst) {   // Vertical
   const __m128i one = _mm_set1_epi8(1);
   const __m128i ABCDEFGH = _mm_loadl_epi64((__m128i*)(dst - BPS - 1));
   const __m128i BCDEFGH0 = _mm_srli_si128(ABCDEFGH, 1);
