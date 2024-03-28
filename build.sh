@@ -3,12 +3,11 @@ if ! test -f ./configure; then
     ./autogen.sh
 fi
 
-WORK_DIR=/home/wrv/research/wasmperf
+export WORK_DIR=/home/wrv/research/wasmperf
 
-WASI_SDK_PATH=${WORK_DIR}/wasi-sdk-21.0
-SIMDE_PATH=${WORK_DIR}/simde-0.7.6
+export WASI_SDK_PATH=${WORK_DIR}/wasi-sdk-21.0
+export SIMDE_PATH=${WORK_DIR}/simde-0.7.6
 
 ./build_native.sh
 ./build_nativesimd.sh
-./build_wasm.sh
-./build_wasmsimd.sh
+./build_all_wasm.sh

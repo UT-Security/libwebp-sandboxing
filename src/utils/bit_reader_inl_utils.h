@@ -135,8 +135,8 @@ static WEBP_INLINE int VP8GetBit(VP8BitReader* WEBP_RESTRICT const br,
   }
 }
 
-#if defined(WEBP_WASM_ALIAS_BITREADER)
-
+// All aliasing calls will require this version of VP8GetBit for in-lining
+#if defined(WEBP_WASM_ALIAS_VP8PARSEINTRAMODEROW)
 static WEBP_INLINE int VP8GetBitAlias(bit_t *value, range_t *range, 
                                  int *bits, const uint8_t** buf, 
                                  const uint8_t** buf_end, const uint8_t** buf_max,
