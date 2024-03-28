@@ -61,6 +61,8 @@ We are running 6 different versions of [decode_webp.c](./decode_webp.c).
 
 With our test environment correctly building libwebp, here we note the changes we have made and their associated positive performance impact. We denote in the title whether the change primarily affects Bitstream Parsing (BP) or Image Reconstruction (IR).
 
+The title has the macro to pass in to enable this optimization.
+
 ### Enabling SIMD Everywhere (SIMDe) (IR): WEBP_USE_SIMDE
 With this [WABT pull request](https://github.com/WebAssembly/wabt/pull/2119), we can go from WASM to C by relying on SIMD Everywhere (SIMDe).
 
@@ -72,12 +74,12 @@ Our primary change to libwebp to enable SIMDe is to add a new `WEBP_USE_SIMDE` d
 - We only rely on the SSE2 and SSE4.1 intrinsics, but libwebp also has intrinsics for MIPS and ARM. This requires some further testing.
 - We could rely on only `-msimd128` when compiling, but the autovectorization is not able to do as well as SSE provided intrinsics.
 
-### Bitreader Bit Size (BP): 
+### Bitreader Bit Size (BP): WEBP_WASM_BITSIZE
 When bitstream parsing, libwebp will cache some number of bytes in the VP8BitReader field `value_`. This field is made to be the size of one register, which is architecture dependent. For architectures that it is not familiar with, it defaults to `uint32_t`. In our case, this is failing to capture the 64-bit size registers of WASM, leading to unnecessary memcpys to load into `value_`.
 
 Inside of `src/utils/bit_reader_utils.h` we add a new condition to ensure the BITS definition is set to use its 64-bit representation on WASM.
 
-### USE_GENERIC_TREE (BP)
+### USE_GENERIC_TREE (BP): WEBP_WASM_GENERIC_TREE
 Inside of [src/dec/tree_dec.c](../src/dec/tree_dec.c) we have the following snippet at the top:
 ```c
 #if !defined(USE_GENERIC_TREE)
@@ -94,10 +96,18 @@ When `USE_GENERIC_TREE` is set to to 1, the intra prediction parsing will read a
 
 According to how `USE_GENERIC_TREE` is defined, it is slower on ARM platforms, but works well on all others. We found in our testing on the AMD server machine that hard-coded tree (aka `USE_GENERIC_TREE` set to 0) is faster on all platforms. At the moment, we just enable it for WASM.
 
-### Removing indirect function calls in libwebp (IR)
-Libwebp does runtime checks to determine whether SIMD functions will work on the machine it is running on. It then updates global function pointers that are called at image reconstruction time. While this is okay for native compilation, this pattern in WASM leads to using `CALL_INDIRECT`s, which is an extra memory read to get the global function pointer then an extra bounds check to ensure the offset is within memory. This extra overhead has a significant impact during image reconstruction as each call to a SIMD-enhanced function eats this cost.
+### Removing indirect function calls in libwebp (IR): WEBP_WASM_DIRECT_FUNCTION_CALL
+Libwebp does runtime checks to determine whether SIMD functions will work on the machine it is running on. It then updates global function pointers that are called at image reconstruction time. While this is okay for native compilation, this pattern in WASM leads to using `CALL_INDIRECT`s, which is an extra memory read to get the global function pointer then an extra bounds check to ensure the offset is within memory. This overhead has a significant impact during image reconstruction as each call to a SIMD-enhanced function eats this cost.
 
 What we do is avoid the indirect call when compiling to WASM by not relying on the runtime checks and instead using the SIMD-enhanced functions directly. This has the benefit of helping both the WASM and WASMSIMD versions. When compiling from the wasm2c code back to Native, the SIMDe can handle the case of the host not adequately supporting a particular SIMD instruction set.
+
+We perform three changes to enable direct function calling:
+1. Inside of the file that does the indirect call, we use a macro to rename the indirect function name to the target function. For example, in [src/dec/frame_dec.c](../src/dec/frame_dec.c), we have `#define VP8Transform TransformTwo_C`.
+2. To make the function we're directly calling accessible, we need to remove the `static` modifier in the file where the function exists. Using the same example, [src/dsp/dec.c](../src/dsp/dec.c) wraps the `static` in a `#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)` wrapper.
+3. Finally, we need to define the function in a location accessible to where we renamed the indirect call to the target call in number 1. For this, we include the function definition at the bottom of [src/dsp/dsp.h](../src/dsp/dsp.h). Behind the feature flag, we include, for example, `void TransformTwo_C(const int16_t* in, uint8_t* dst, int do_two);`. 
+
+#### Other issues
+Removing `static` from function definitions makes them visible outside the defined file. Some encoding functions have the same name as their decoding counterpart, and `src/dsp/dsp.h` is used in both decoding and encoding functions. Therefore we rename the encoding function with the same by prepending `enc_` to it.
 
 ### VP8BitReader Aliasing (BP)
 Libwebp has some function calls with `WEBP_RESTRICT` modifiers on variable names. Inside of [src/dsp/dsp.h](../src/dsp/dsp.h) this is defined to use the `restrict` type qualifier if the compiler supports it (for GNUC use `__restrict__` and on MSC use `__restrict`). The `restrict` qualifier tells the compiler that the pointer is the only pointer referencing an object, so there is no concern about potential race conditions we do not need to load the pointer again. We primarily focus on the `WEBP_RESTRICT` modifier for pointers to VP8BitReader objects, and this is the key structure used when parsing the bitstream.
@@ -208,7 +218,7 @@ WABT Pull Request [2357](https://github.com/WebAssembly/wabt/pull/2357).
 
 At the moment, all reads in WASM are required to execute. Wasm2c enforces this by inserting inline asm that forces the result of the load to be live, even if it is never used. This pull request removes the forced read so that if a read value is never used, then it can be optimized out.
 
-The discussion around the PR centers around whether it makes sense to include this WASM spec-non-compliance within the output. This PR is currently on hold, pending a review from the WASM spec designers. 
+The discussion around the PR centers around whether it makes sense to include this WASM spec-non-compliance within the output. This PR is currently on hold, pending a review from the WASM spec designers.
 
 The optimization here comes from the fact that an extra load is removed for each access.
 

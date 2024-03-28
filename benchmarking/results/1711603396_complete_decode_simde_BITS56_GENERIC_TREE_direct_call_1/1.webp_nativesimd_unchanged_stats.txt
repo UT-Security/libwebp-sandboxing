@@ -1,0 +1,6 @@
+n: 20
+mean: 0.2159918
+standard deviation: 0.004996254182885415
+variance: 2.496255586e-05
+max: 0.232631
+min: 0.213154
