@@ -17,6 +17,7 @@
 #endif
 
 #include "decode_webp_wasmsimd.h"
+#define WASM_RT_MODULE_IS_SINGLE_UNSHARED_MEMORY 1
 
 // Computes a pointer to an object of the given size in a little-endian memory.
 //
@@ -37,6 +38,40 @@
 #define MEM_ADDR(mem, addr, n) &(mem)->data[(mem)->size - (addr) - (n)]
 #else
 #define MEM_ADDR(mem, addr, n) &(mem)->data[addr]
+#endif
+
+#ifndef WASM_RT_USE_SEGUE
+// Memory functions can use the segue optimization if allowed. The segue
+// optimization uses x86 segments to point to a linear memory. We use this
+// optimization when:
+//
+// (1) Segue is allowed using WASM_RT_ALLOW_SEGUE
+// (2) on x86_64 without WABT_BIG_ENDIAN enabled
+// (3) the Wasm module uses a single unshared imported or exported memory
+// (4) the compiler supports: intrinsics for (rd|wr)gsbase, "address namespaces"
+//     for accessing pointers, and supports memcpy on pointers with custom
+//     "address namespaces". GCC does not support the memcpy requirement, so
+//     this leaves only clang for now.
+// (5) The OS doesn't replace the segment register on context switch which
+//     eliminates windows for now
+#if WASM_RT_ALLOW_SEGUE && !WABT_BIG_ENDIAN &&               \
+    (defined(__x86_64__) || defined(_M_X64)) &&              \
+    WASM_RT_MODULE_IS_SINGLE_UNSHARED_MEMORY && __clang__ && \
+    __has_builtin(__builtin_ia32_wrgsbase64) && !defined(_WIN32)
+#define WASM_RT_USE_SEGUE 1
+#else
+#define WASM_RT_USE_SEGUE 0
+#endif
+#endif
+
+#if WASM_RT_USE_SEGUE
+// POSIX uses FS for TLS, GS is free
+#define WASM_RT_SEGUE_READ_BASE() __builtin_ia32_rdgsbase64()
+#define WASM_RT_SEGUE_WRITE_BASE(base) \
+  __builtin_ia32_wrgsbase64((uintptr_t)base)
+#define MEM_ADDR_MEMOP(mem, addr, n) ((uint8_t __seg_gs*)(uintptr_t)addr)
+#else
+#define MEM_ADDR_MEMOP(mem, addr, n) MEM_ADDR(mem, addr, n)
 #endif
 
 #define TRAP(x) (wasm_rt_trap(WASM_RT_TRAP_##x), 0)
@@ -92,7 +127,7 @@ static inline bool func_types_eq(const wasm_rt_func_type_t a,
 #define MEMCHECK(mem, a, t) RANGE_CHECK(mem, a, sizeof(t))
 #endif
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && !WASM2C_NONCONFORMING_LOAD_ELISION
 #define FORCE_READ_INT(var) __asm__("" ::"r"(var));
 // Clang on Mips requires "f" constraints on floats
 // See https://github.com/llvm/llvm-project/issues/64241
@@ -128,20 +163,22 @@ static inline void load_data(void* dest, const void* src, size_t n) {
     load_data(MEM_ADDR(&m, o, s), i, s); \
   } while (0)
 
-#define DEFINE_LOAD(name, t1, t2, t3, force_read)                         \
-  static inline t3 name(wasm_rt_memory_t* mem, u64 addr) {                \
-    MEMCHECK(mem, addr, t1);                                              \
-    t1 result;                                                            \
-    wasm_rt_memcpy(&result, MEM_ADDR(mem, addr, sizeof(t1)), sizeof(t1)); \
-    force_read(result);                                                   \
-    return (t3)(t2)result;                                                \
+#define DEFINE_LOAD(name, t1, t2, t3, force_read)                  \
+  static inline t3 name(wasm_rt_memory_t* mem, u64 addr) {         \
+    MEMCHECK(mem, addr, t1);                                       \
+    t1 result;                                                     \
+    wasm_rt_memcpy(&result, MEM_ADDR_MEMOP(mem, addr, sizeof(t1)), \
+                   sizeof(t1));                                    \
+    force_read(result);                                            \
+    return (t3)(t2)result;                                         \
   }
 
-#define DEFINE_STORE(name, t1, t2)                                         \
-  static inline void name(wasm_rt_memory_t* mem, u64 addr, t2 value) {     \
-    MEMCHECK(mem, addr, t1);                                               \
-    t1 wrapped = (t1)value;                                                \
-    wasm_rt_memcpy(MEM_ADDR(mem, addr, sizeof(t1)), &wrapped, sizeof(t1)); \
+#define DEFINE_STORE(name, t1, t2)                                     \
+  static inline void name(wasm_rt_memory_t* mem, u64 addr, t2 value) { \
+    MEMCHECK(mem, addr, t1);                                           \
+    t1 wrapped = (t1)value;                                            \
+    wasm_rt_memcpy(MEM_ADDR_MEMOP(mem, addr, sizeof(t1)), &wrapped,    \
+                   sizeof(t1));                                        \
   }
 
 DEFINE_LOAD(i32_load, u32, u32, u32, FORCE_READ_INT)
@@ -657,7 +694,8 @@ DEFINE_TABLE_FILL(externref)
 typedef simde_v128_t v128;
 #endif
 
-#if defined(__GNUC__) && defined(__x86_64__)
+#if defined(__GNUC__) && defined(__x86_64__) && \
+    !WASM2C_NONCONFORMING_LOAD_ELISION
 #define SIMD_FORCE_READ(var) __asm__("" ::"x"(var));
 #else
 #define SIMD_FORCE_READ(var)
@@ -2692,17 +2730,40 @@ wasm_rt_memory_t* w2c_decode__webp__wasmsimd_memory(w2c_decode__webp__wasmsimd* 
 
 /* export: '_initialize' */
 void w2c_decode__webp__wasmsimd_0x5Finitialize(w2c_decode__webp__wasmsimd* instance) {
+#if WASM_RT_USE_SEGUE
+  uintptr_t segue_saved_base = WASM_RT_SEGUE_READ_BASE();
+  WASM_RT_SEGUE_WRITE_BASE(instance->w2c_memory.data);
+#endif
   w2c_decode__webp__wasmsimd_0x5Finitialize_0(instance);
+#if WASM_RT_USE_SEGUE
+  WASM_RT_SEGUE_WRITE_BASE(segue_saved_base);
+#endif
 }
 
 /* export: 'malloc' */
 u32 w2c_decode__webp__wasmsimd_malloc(w2c_decode__webp__wasmsimd* instance, u32 var_p0) {
-  return w2c_decode__webp__wasmsimd_malloc_0(instance, var_p0);
+#if WASM_RT_USE_SEGUE
+  uintptr_t segue_saved_base = WASM_RT_SEGUE_READ_BASE();
+  WASM_RT_SEGUE_WRITE_BASE(instance->w2c_memory.data);
+#endif
+  u32 ret = w2c_decode__webp__wasmsimd_malloc_0(instance, var_p0);
+#if WASM_RT_USE_SEGUE
+  WASM_RT_SEGUE_WRITE_BASE(segue_saved_base);
+#endif
+  return ret;
 }
 
 /* export: 'DecodeWebpImage' */
 u32 w2c_decode__webp__wasmsimd_DecodeWebpImage(w2c_decode__webp__wasmsimd* instance, u32 var_p0, u32 var_p1, u32 var_p2, u32 var_p3, u32 var_p4) {
-  return w2c_decode__webp__wasmsimd_DecodeWebpImage_0(instance, var_p0, var_p1, var_p2, var_p3, var_p4);
+#if WASM_RT_USE_SEGUE
+  uintptr_t segue_saved_base = WASM_RT_SEGUE_READ_BASE();
+  WASM_RT_SEGUE_WRITE_BASE(instance->w2c_memory.data);
+#endif
+  u32 ret = w2c_decode__webp__wasmsimd_DecodeWebpImage_0(instance, var_p0, var_p1, var_p2, var_p3, var_p4);
+#if WASM_RT_USE_SEGUE
+  WASM_RT_SEGUE_WRITE_BASE(segue_saved_base);
+#endif
+  return ret;
 }
 
 static void init_instance_import(w2c_decode__webp__wasmsimd* instance, struct w2c_wasi__snapshot__preview1* w2c_wasi__snapshot__preview1_instance) {
@@ -2715,8 +2776,15 @@ void wasm2c_decode__webp__wasmsimd_instantiate(w2c_decode__webp__wasmsimd* insta
   init_globals(instance);
   init_tables(instance);
   init_memories(instance);
+#if WASM_RT_USE_SEGUE
+  uintptr_t segue_saved_base = WASM_RT_SEGUE_READ_BASE();
+  WASM_RT_SEGUE_WRITE_BASE(instance->w2c_memory.data);
+#endif
   init_elem_instances(instance);
   init_data_instances(instance);
+#if WASM_RT_USE_SEGUE
+  WASM_RT_SEGUE_WRITE_BASE(segue_saved_base);
+#endif
 }
 
 void wasm2c_decode__webp__wasmsimd_free(w2c_decode__webp__wasmsimd* instance) {
@@ -6241,31 +6309,31 @@ void w2c_decode__webp__wasmsimd_ReconstructRow(w2c_decode__webp__wasmsimd* insta
         default: goto var_B12;
       }
       var_B22:;
-      var_i0 = var_l8;
+      var_i0 = var_l25;
       w2c_decode__webp__wasmsimd_DC4_C(instance, var_i0);
       goto var_B12;
       var_B21:;
-      var_i0 = var_l8;
+      var_i0 = var_l25;
       w2c_decode__webp__wasmsimd_TM4_SSE2(instance, var_i0);
       goto var_B12;
       var_B20:;
-      var_i0 = var_l8;
+      var_i0 = var_l25;
       w2c_decode__webp__wasmsimd_VE4_SSE2(instance, var_i0);
       goto var_B12;
       var_B19:;
-      var_i0 = var_l8;
+      var_i0 = var_l25;
       w2c_decode__webp__wasmsimd_HE4_C(instance, var_i0);
       goto var_B12;
       var_B18:;
-      var_i0 = var_l8;
+      var_i0 = var_l25;
       w2c_decode__webp__wasmsimd_RD4_SSE2(instance, var_i0);
       goto var_B12;
       var_B17:;
-      var_i0 = var_l8;
+      var_i0 = var_l25;
       w2c_decode__webp__wasmsimd_VR4_SSE2(instance, var_i0);
       goto var_B12;
       var_B16:;
-      var_i0 = var_l8;
+      var_i0 = var_l25;
       w2c_decode__webp__wasmsimd_LD4_SSE2(instance, var_i0);
       goto var_B12;
       var_B15:;
@@ -123643,6 +123711,9 @@ u32 w2c_decode__webp__wasmsimd_sbrk(w2c_decode__webp__wasmsimd* instance, u32 va
   var_i1 = 16u;
   var_i0 >>= (var_i1 & 31);
   var_i0 = wasm_rt_grow_memory(&instance->w2c_memory, var_i0);
+#if WASM_RT_USE_SEGUE
+  WASM_RT_SEGUE_WRITE_BASE(instance->w2c_memory.data);
+#endif
   var_p0 = var_i0;
   var_i1 = 4294967295u;
   var_i0 = var_i0 != var_i1;

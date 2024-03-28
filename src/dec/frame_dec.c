@@ -282,25 +282,25 @@ static void ReconstructRow(const VP8Decoder* const dec,
 #if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
         switch (block->imodes_[n]) {
           case B_DC_PRED:
-            VP8PredLuma4DC(y_dst);
+            VP8PredLuma4DC(dst);
             break;
           case B_TM_PRED:
-            VP8PredLuma4TM(y_dst);
+            VP8PredLuma4TM(dst);
             break;
           case B_VE_PRED:
-            VP8PredLuma4VE(y_dst);
+            VP8PredLuma4VE(dst);
             break;
           case B_HE_PRED:
-            VP8PredLuma4HE(y_dst);
+            VP8PredLuma4HE(dst);
             break;
           case B_RD_PRED:
-            VP8PredLuma4RD(y_dst);
+            VP8PredLuma4RD(dst);
             break;
           case B_VR_PRED:
-            VP8PredLuma4VR(y_dst);
+            VP8PredLuma4VR(dst);
             break;
           case B_LD_PRED:
-            VP8PredLuma4LD(y_dst);
+            VP8PredLuma4LD(dst);
             break;
           case B_VL_PRED:
             VP8PredLuma4VL(dst);
