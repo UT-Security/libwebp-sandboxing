@@ -106,10 +106,12 @@ We perform three changes to enable direct function calling:
 2. To make the function we're directly calling accessible, we need to remove the `static` modifier in the file where the function exists. Using the same example, [src/dsp/dec.c](../src/dsp/dec.c) wraps the `static` in a `#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)` wrapper.
 3. Finally, we need to define the function in a location accessible to where we renamed the indirect call to the target call in number 1. For this, we include the function definition at the bottom of [src/dsp/dsp.h](../src/dsp/dsp.h). Behind the feature flag, we include, for example, `void TransformTwo_C(const int16_t* in, uint8_t* dst, int do_two);`. 
 
+**This approach is something we'll also need to apply for Lossless and Alpha decoding.**
+
 #### Other issues
 Removing `static` from function definitions makes them visible outside the defined file. Some encoding functions have the same name as their decoding counterpart, and `src/dsp/dsp.h` is used in both decoding and encoding functions. Therefore we rename the encoding function with the same by prepending `enc_` to it.
 
-### VP8BitReader Aliasing (BP)
+### VP8BitReader Aliasing (BP): WEBP_WASM_ALIAS_BITREADER
 Libwebp has some function calls with `WEBP_RESTRICT` modifiers on variable names. Inside of [src/dsp/dsp.h](../src/dsp/dsp.h) this is defined to use the `restrict` type qualifier if the compiler supports it (for GNUC use `__restrict__` and on MSC use `__restrict`). The `restrict` qualifier tells the compiler that the pointer is the only pointer referencing an object, so there is no concern about potential race conditions we do not need to load the pointer again. We primarily focus on the `WEBP_RESTRICT` modifier for pointers to VP8BitReader objects, and this is the key structure used when parsing the bitstream.
 
 When compiling to WASM, the `WEBP_RESTRICT` qualifier is indeed used when producing the WASM output, but that information is lost when converted to C and subsequently to native. This means that we have an extra load in our final output each time we try to read from VP8BitReader. **A research question here is what would be the best way to communicate the `restrict` qualifier in our pipeline?**
@@ -118,7 +120,7 @@ What we do to manually mimic what `WEBP_RESTRICT` does is rewrite libwebp to not
 
 The aliasing had mixed results, and in this section we talk about the wins. Later in the [Negative Results Section](#aliasing), we talk about where this did not work.
 
-#### VP8ParseIntraModeRow
+#### VP8ParseIntraModeRow: WEBP_WASM_ALIAS_VP8PARSEINTRAMODEROW
 VP8ParseIntraModeRow lives in [src/dec/tree_dec.c](../src/dec/tree_dec.c). This function is parsing the bitstream to recover the Intra mode to use for each macroblock. For each macroblock in a row, it calls ParseIntraMode which recovers the either 4x4 or 16x16 Luma Intra mode, and the 16x16 Chroma Intra mode used. It directly calls `VP8GetBit`, which during compilation is inlined in ParseIntraMode, which itself gets inlined inside VP8ParseIntraModeRow.
 
 Aliasing this function consists of writing the following wrapper in VP8ParseIntraModeRow:
@@ -207,7 +209,7 @@ static WEBP_INLINE int VP8GetBit_alias(bit_t *value, range_t *range, int *bits, 
   }
 }
 ```
-It also incorporates the dependent functions VP8LoadNewBytes and VP8LoadFinalBytes and chooses some defaults around `BIT_SIZE`.s
+It also incorporates the dependent functions VP8LoadNewBytes and VP8LoadFinalBytes and chooses some defaults around `BIT_SIZE`.
 
 
 ### WABT Changes

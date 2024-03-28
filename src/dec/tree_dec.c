@@ -287,6 +287,7 @@ void VP8ResetProba(VP8Proba* const proba) {
   // proba->bands_[][] is initialized later
 }
 
+#if !defined(WEBP_WASM_ALIAS_VP8PARSEINTRAMODEROW)
 static void ParseIntraMode(VP8BitReader* const br,
                            VP8Decoder* const dec, int mb_x) {
   uint8_t* const top = dec->intra_t_ + 4 * mb_x;
@@ -357,12 +358,105 @@ static void ParseIntraMode(VP8BitReader* const br,
                  : !VP8GetBit(br, 114, "pred-modes-uv") ? V_PRED
                  : VP8GetBit(br, 183, "pred-modes-uv") ? TM_PRED : H_PRED;
 }
+#endif // WEBP_WASM_ALIAS_VP8PARSEINTRAMODEROW
 
 int VP8ParseIntraModeRow(VP8BitReader* const br, VP8Decoder* const dec) {
   int mb_x;
+
+#if defined(WEBP_WASM_ALIAS_VP8PARSEINTRAMODEROW)
+  // Alias all the VP8BitReader components
+  bit_t value = br->value_;
+  range_t range = br->range_;
+  int bits = br->bits_;
+  const uint8_t* buf = br->buf_;
+  const uint8_t* buf_end = br->buf_end_;
+  const uint8_t* buf_max = br->buf_max_;
+  int eof = br->eof_;
+
+  for (mb_x = 0; mb_x < dec->mb_w_; ++mb_x) {
+    uint8_t* const top = dec->intra_t_ + 4 * mb_x;
+    uint8_t* const left = dec->intra_l_;
+    VP8MBData* const block = dec->mb_data_ + mb_x;
+
+    // Note: we don't save segment map (yet), as we don't expect
+    // to decode more than 1 keyframe.
+    if (dec->segment_hdr_.update_map_) {
+      // Hardcoded tree parsing
+      block->segment_ = !VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, dec->proba_.segments_[0])
+                      ?  VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, dec->proba_.segments_[1])
+                      :  VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, dec->proba_.segments_[2]) + 2;
+    } else {
+      block->segment_ = 0;  // default for intra
+    }
+    if (dec->use_skip_proba_) block->skip_ = VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, dec->skip_p_);
+
+    block->is_i4x4_ = !VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, 145);
+    if (!block->is_i4x4_) {
+      // Hardcoded 16x16 intra-mode decision tree.
+      const int ymode =
+          VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, 156) ?
+              (VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, 128) ? TM_PRED : H_PRED) :
+              (VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, 163) ? V_PRED : DC_PRED);
+      block->imodes_[0] = ymode;
+      memset(top, ymode, 4 * sizeof(*top));
+      memset(left, ymode, 4 * sizeof(*left));
+    } else {
+      uint8_t* modes = block->imodes_;
+      int y;
+      for (y = 0; y < 4; ++y) {
+        int ymode = left[y];
+        int x;
+        for (x = 0; x < 4; ++x) {
+          const uint8_t* const prob = kBModesProba[top[x]][ymode];
+#if (USE_GENERIC_TREE == 1)
+          // Generic tree-parsing
+          int i = kYModesIntra4[VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, prob[0])];
+          while (i > 0) {
+            i = kYModesIntra4[2 * i + VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, prob[i])];
+          }
+          ymode = -i;
+#else
+          // Hardcoded tree parsing
+          ymode = !VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, prob[0]) ? B_DC_PRED :
+                    !VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, prob[1]) ? B_TM_PRED :
+                      !VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, prob[2]) ? B_VE_PRED :
+                        !VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, prob[3]) ?
+                          (!VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, prob[4]) ? B_HE_PRED :
+                            (!VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, prob[5]) ? B_RD_PRED
+                                                                  : B_VR_PRED)) :
+                          (!VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, prob[6]) ? B_LD_PRED :
+                            (!VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, prob[7]) ? B_VL_PRED :
+                              (!VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, prob[8]) ? B_HD_PRED
+                                                                    : B_HU_PRED))
+                          );
+#endif  // USE_GENERIC_TREE
+          top[x] = ymode;
+        }
+        memcpy(modes, top, 4 * sizeof(*top));
+        modes += 4;
+        left[y] = ymode;
+      }
+    }
+    // Hardcoded UVMode decision tree
+    block->uvmode_ = !VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, 142) ? DC_PRED
+                  : !VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, 114) ? V_PRED
+                  : VP8GetBitAlias(&value, &range, &bits, &buf, &buf_end, &buf_max, &eof, 183) ? TM_PRED : H_PRED;
+  }
+
+  br->value_ = value;
+  br->range_ = range;
+  br->bits_ = bits;
+  br->buf_ = buf;
+  br->buf_end_ = buf_end;
+  br->buf_max_ = buf_max;
+  br->eof_ = eof;
+#else
   for (mb_x = 0; mb_x < dec->mb_w_; ++mb_x) {
     ParseIntraMode(br, dec, mb_x);
   }
+#endif // WEBP_WASM_ALIAS_VP8PARSEINTRAMODEROW
+
+
   return !dec->br_.eof_;
 }
 

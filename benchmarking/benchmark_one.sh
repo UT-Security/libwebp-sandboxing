@@ -1,4 +1,4 @@
-title="complete_decode_simde_BITS56_GENERIC_TREE_direct_call"
+title="complete_decode_simde_BITS56_GENERIC_TREE_direct_call_alias_vp8parseintramoderow"
 cur_date=$(date +%s)
 
 cur_dir=$(pwd)
@@ -11,7 +11,7 @@ decode_count=100
 
 indir=inputs_one/
 infile=inputs_one/1.webp
-outputdirname=tmp/${cur_date}_${title}
+outputdirname=results/${cur_date}_${title}
 
 # Build the library
 if [ "$1" = "build" ]; then

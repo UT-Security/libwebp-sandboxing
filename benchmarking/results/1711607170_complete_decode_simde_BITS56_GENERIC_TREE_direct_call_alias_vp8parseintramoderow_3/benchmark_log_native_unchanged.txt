@@ -1,0 +1,3 @@
+Time to decode inputs_one//1.webp 100 times: 0.3051030000s
+Saving 607215 bytes to results/1711607170_complete_decode_simde_BITS56_GENERIC_TREE_direct_call_alias_vp8parseintramoderow_3/1.webp_native_unchanged.ppm
+Webp version 1.3.2 (outputting image)

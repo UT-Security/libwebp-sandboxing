@@ -135,6 +135,67 @@ static WEBP_INLINE int VP8GetBit(VP8BitReader* WEBP_RESTRICT const br,
   }
 }
 
+#if defined(WEBP_WASM_ALIAS_BITREADER)
+
+static WEBP_INLINE int VP8GetBitAlias(bit_t *value, range_t *range, 
+                                 int *bits, const uint8_t** buf, 
+                                 const uint8_t** buf_end, const uint8_t** buf_max,
+                                 int* eof, int prob) {
+  // Don't move this declaration! It makes a big speed difference to store
+  // 'range' *before* calling VP8LoadNewBytes(), even if this function doesn't
+  // alter br->range_ value.
+  range_t range_start = *range;
+  if (*bits < 0) {
+    // VP8LoadNewBytes
+    assert(*buf != NULL);
+    // Read 'BITS' bits at a time if possible.
+    if (*buf < *buf_max) {
+      // convert memory type to register type (with some zero'ing!)
+      bit_t bits_start;
+      lbit_t in_bits;
+      memcpy(&in_bits, *buf, sizeof(in_bits));
+      *buf += BITS >> 3;
+      bits_start = __builtin_bswap64(in_bits);
+      bits_start >>= 64 - BITS;
+      *value = bits_start | (*value << BITS);
+      *bits += BITS;
+    } else {
+      // VP8LoadFinalBytes
+      if (*buf < *buf_end) {
+        *bits += 8;
+        *value = (bit_t)(*(*buf)++) | (*value << 8);
+      } else if (!*eof) {
+        *value <<= 8;
+        *bits += 8;
+        *eof = 1;
+      } else {
+        *bits = 0;  // This is to avoid undefined behaviour with shifts.
+      }
+    }
+  }
+  {
+    const int pos = *bits;
+    const range_t split = (range_start * prob) >> 8;
+    const range_t value_start = (range_t)(*value >> pos);
+    const int bit = (value_start > split);
+    if (bit) {
+      range_start -= split;
+      *value -= (bit_t)(split + 1) << pos;
+    } else {
+      range_start = split + 1;
+    }
+    {
+      const int shift = 24 ^ __builtin_clz(range_start);
+      range_start <<= shift;
+      *bits -= shift;
+    }
+    *range = range_start - 1;
+    return bit;
+  }
+}
+
+#endif
+
 // simplified version of VP8GetBit() for prob=0x80 (note shift is always 1 here)
 static WEBP_UBSAN_IGNORE_UNSIGNED_OVERFLOW WEBP_INLINE
 int VP8GetSigned(VP8BitReader* WEBP_RESTRICT const br, int v,
