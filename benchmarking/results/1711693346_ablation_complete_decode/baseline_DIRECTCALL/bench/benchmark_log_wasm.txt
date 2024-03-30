@@ -1,0 +1,3 @@
+Time to decode inputs_one//1.webp 100 times: 0.3759910000s
+Saving 607215 bytes to tmp/1711693346_ablation_complete_decode/baseline_DIRECTCALL/bench/1.webp_wasm.ppm
+WASM Webp version 1.3.2 (outputting image)

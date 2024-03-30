@@ -1,0 +1,3 @@
+Time to decode inputs_one//1.webp 100 times: 0.3065800000s
+Saving 607215 bytes to tmp/1711693346_ablation_complete_decode_no_force_read/baseline_ALIASVP8PARSEINTRAMODEROW/bench/1.webp_native.ppm
+Webp version 1.3.2 (outputting image)
