@@ -152,11 +152,26 @@ static WEBP_INLINE int VP8GetBitAlias(bit_t *value, range_t *range,
     if (*buf < *buf_max) {
       // convert memory type to register type (with some zero'ing!)
       bit_t bits_start;
+      // Remove the MIPS32 in-line assembly
       lbit_t in_bits;
       memcpy(&in_bits, *buf, sizeof(in_bits));
       *buf += BITS >> 3;
-      bits_start = __builtin_bswap64(in_bits);
+#if !defined(WORDS_BIGENDIAN)
+#if (BITS > 32)
+      bits_start = BSwap64(in_bits);
       bits_start >>= 64 - BITS;
+#elif (BITS >= 24)
+      bits_start = BSwap32(in_bits);
+      bits_start >>= (32 - BITS);
+#elif (BITS == 16)
+      bits_start = BSwap16(in_bits);
+#else   // BITS == 8
+      bits_start = (bit_t)in_bits;
+#endif  // BITS > 32
+#else    // WORDS_BIGENDIAN
+    bits_start = (bit_t)in_bits;
+    if (BITS != 8 * sizeof(bit_t)) bits_start >>= (8 * sizeof(bit_t) - BITS);
+#endif
       *value = bits_start | (*value << BITS);
       *bits += BITS;
     } else {
