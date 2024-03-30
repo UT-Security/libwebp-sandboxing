@@ -1,3 +1,0 @@
-Time to decode inputs_one//1.webp 100 times: 0.4180670000s
-Saving 607215 bytes to tmp/1710778786_complete_decode_simde_3/1.webp_wasm.ppm
-WASM Webp version 1.3.2 (outputting image)

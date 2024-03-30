@@ -109,6 +109,11 @@ def generate_bar(data):
   Arguments:
     data = {filename: (average execution time, [raw data])}
   """
+  plt_file_name = os.path.join(results_dir, "unified_analysis_bar_chart.png")
+  data_file_name = os.path.join(results_dir, "unified_analysis_data.txt")
+
+  data_file = open(data_file_name, 'w')
+
   fig = plt.figure(figsize=(30,12))
   gs = fig.add_gridspec(1, len(data.keys()), hspace=0, wspace=0)
   subplots = gs.subplots(sharex='col', sharey='row')
@@ -131,6 +136,11 @@ def generate_bar(data):
     print(x_axis)
     print(yaxis_str)
     print(err_str)
+
+    data_file.write(str(x_axis) + "\n")
+    data_file.write(yaxis_str + "\n")
+    data_file.write(err_str + "\n")
+
     if len(data.keys()) > 1:
       subplots[subplot_idx].bar(x_axis, y_axis, yerr=err_val, align='center', alpha=0.5, ecolor='black', capsize=10, color=test_type_colors.values())
       for i in range(len(x_axis)):
@@ -163,10 +173,11 @@ def generate_bar(data):
   else:
     plt.title("Comparison of Decoding Speeds (total time for 100 decodes)")
   plt.legend(handles, labels, loc="upper left")
-  plt_file_name = os.path.join(results_dir, "unified_analysis_bar_chart.png")
   plt.savefig(plt_file_name)
   plt.close()
+  data_file.close()
   print(f"Plot saved to {plt_file_name}")
+  print(f"Data saved to {data_file_name}")
     
 def main():
   global input_dir

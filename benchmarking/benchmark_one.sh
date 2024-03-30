@@ -81,8 +81,8 @@ do
         # Copy test files
         cp bin/decode_webp_${testname}* ${outdir}/
         if [[ ${testname} != *"unchanged" ]]; then
-        cp -r ../libwebp_${testname} ${outdir}/
-    fi
+            cp -r ../libwebp_${testname} ${outdir}/
+        fi
     done
 
     cp decode_webp_wasm* ${outdir}/

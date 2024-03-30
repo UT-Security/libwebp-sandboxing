@@ -5,13 +5,13 @@ if [ "$WASI_SDK_PATH" == "" ]; then
     WASI_SDK_PATH=${WORK_DIR}/wasi-sdk-21.0
 fi
 
-echo "$WASM_COMPILER_DEFINES"
+echo Before: "$WASM_COMPILER_DEFINES"
 
 if [ "$WASM_COMPILER_DEFINES" == "" ]; then
 	# Default to all existing optimizations
 	WASM_COMPILER_DEFINES=""
 	# Enable 64-bit registers in WASM
-	WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_BITSIZE"
+	#WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_BITSIZE"
 	# Use the hardcoded tree approach
 	WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_HARDCODED_TREE"
 	# Avoid indirect function calls by renaming functions
@@ -20,6 +20,7 @@ if [ "$WASM_COMPILER_DEFINES" == "" ]; then
 	WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_ALIAS_VP8PARSEINTRAMODEROW"
 fi
 
+echo After: "$WASM_COMPILER_DEFINES"
 make clean > /dev/null
 echo "Building WASM version of libwebp"
 curprefix=$(pwd)/libwebp_wasm

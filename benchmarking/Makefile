@@ -37,10 +37,10 @@ all: native wasm
 # We want clean to keep the original unchanged versions, and just clear out the built bins
 clean:
 	rm decode_webp_native* decode_webp_wasm*
-	rm bin/decode_webp_native
-	rm bin/decode_webp_nativesimd
-	rm bin/decode_webp_wasm
-	rm bin/decode_webp_wasmsimd
+#	rm bin/decode_webp_native
+#	rm bin/decode_webp_nativesimd
+#	rm bin/decode_webp_wasm
+#	rm bin/decode_webp_wasmsimd
 
 ${OUT_DIR}/decode_webp_native: main_native.c decode_webp.c ../libwebp_native/lib/libwebp.a
 	${dir_guard}
