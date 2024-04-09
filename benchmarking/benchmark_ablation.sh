@@ -1,11 +1,8 @@
 #!/bin/bash
 
 # Install dependencies
-
 sudo apt install cpuset
 sudo apt install cpufrequtils
-
-
 
 setupenv() {
     # disable hyperthreads
@@ -115,12 +112,12 @@ do
                         #echo ${outdir}/bin/decode_webp_${t} ${indir}/${imagename} ${outdir}/${imagename}_${t}.csv ${outdir}/${imagename}_${t}.ppm ${decode_count}
                         ${outdir}/bin/decode_webp_${t} ${indir}/${imagename} ${outdir}/${imagename}_${t}.csv ${outdir}/${imagename}_${t}.ppm ${decode_count} > ${logname} 2>&1
                     done
-                    python3 stat_analysis.py "${outdir}/${imagename}_${t}.csv" "${outdir}/${imagename}_${t}_stats.txt" "${imagename} with ${t}" "${outdir}/${imagename}_${t}_stats.png"
+                    virtualenv/bin/python3 stat_analysis.py "${outdir}/${imagename}_${t}.csv" "${outdir}/${imagename}_${t}_stats.txt" "${imagename} with ${t}" "${outdir}/${imagename}_${t}_stats.png"
                     sleep 1
                 done
 
                 sha256sum ${outdir}/*.ppm
-                python3 comp_analysis.py ${indir} ${outdir} "${title}"
+                virtualenv/bin/python3 comp_analysis.py ${indir} ${outdir} "${title}"
             done
         done
     done
