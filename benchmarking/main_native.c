@@ -52,14 +52,23 @@ int main(int argc, const char* argv[]) {
 
   uint8_t* result = NULL;
   size_t result_size = 0;
-
-
   Stopwatch stop_watch;
+
+  /* Warm up phase*/
   StopwatchReset(&stop_watch);
   int status = DecodeWebpImage(data, data_size, iterations, &result, &result_size);
-  const double dt = StopwatchReadAndReset(&stop_watch);
+  double dt = StopwatchReadAndReset(&stop_watch);
   if (status != 0) {
-    fprintf(stderr, "Failed to decode :(\n");
+    fprintf(stderr, "Failed to decode during warmup phase :(\n");
+    return -1;
+  }
+
+  /* Test Phase */
+  StopwatchReset(&stop_watch);
+  status = DecodeWebpImage(data, data_size, iterations, &result, &result_size);
+  dt = StopwatchReadAndReset(&stop_watch);
+  if (status != 0) {
+    fprintf(stderr, "Failed to decode during test phase :(\n");
     return -1;
   }
   fprintf(stderr, "Time to decode %s %d times: %.10fs\n", in_file, iterations, dt);

@@ -143,13 +143,26 @@ int main(int argc, const char** argv) {
 #endif
 
   Stopwatch stop_watch;
+
+  /* Warm up phase */
   StopwatchReset(&stop_watch);
 #ifdef ENABLE_SIMD
   w2c_decode__webp__wasmsimd_DecodeWebpImage(&inst, webp_file, data_size, iterations, result, result_size);
 #else
   w2c_decode__webp__wasm_DecodeWebpImage(&inst, webp_file, data_size, iterations, result, result_size);
 #endif
-  const double dt = StopwatchReadAndReset(&stop_watch);
+  double dt = StopwatchReadAndReset(&stop_watch);
+
+  /* Test phase */
+  StopwatchReset(&stop_watch);
+#ifdef ENABLE_SIMD
+  w2c_decode__webp__wasmsimd_DecodeWebpImage(&inst, webp_file, data_size, iterations, result, result_size);
+#else
+  w2c_decode__webp__wasm_DecodeWebpImage(&inst, webp_file, data_size, iterations, result, result_size);
+#endif
+  dt = StopwatchReadAndReset(&stop_watch);
+
+
   fprintf(stderr, "Time to decode %s %d times: %.10fs\n", in_file, iterations, dt);
   fprintf(out_time, "%f\n", dt);
 
