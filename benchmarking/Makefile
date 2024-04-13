@@ -11,7 +11,11 @@ WASI_CLANG=${WASI_SDK_PATH}/bin/clang
 WASI_FLAGS=-mexec-model=reactor --sysroot ${WASI_SDK_PATH}/share/wasi-sysroot
 WASI_SIMD_FLAGS=-msimd128 -I${SIMDE_PATH}
 
-WASM2C_BIN=${WABT_PATH}/bin/wasm2c
+ifndef WABT_VER
+WABT_VER=combined
+endif
+
+WASM2C_BIN=${WABT_PATH}/build_${WABT_VER}/wasm2c
 WASM2C_DEP=${WABT_PATH}/wasm2c/wasm-rt-impl.c ${WABT_PATH}/wasm2c/wasm-rt-mem-impl.c ${WABT_PATH}/wasm2c/wasm-rt-exceptions-impl.c -I${WABT_PATH}/include -I${WABT_PATH}/wasm2c -DWASM2C_NONCONFORMING_LOAD_ELISION -DWASM_RT_ALLOW_SEGUE=1 -mfsgsbase
 WASMSIMD_FLAGS=-DENABLE_SIMD -I${SIMDE_PATH}
 

@@ -263,3 +263,102 @@ Unfortunately, our approach led to a performance degradation across all versions
 VP8DecodeMB is in [src/dec/vp8_dec.c](../src/dec/vp8_dec.c). This is a hot function that decodes the residual information inside of macroblocks. It inlines the function ParseResiduals, which calls the indirect function GetCoeffs.
 
 We aliased the parameters to GetCoeffs from ParseResiduals, and I think the came from the fact that we were aliasing in the wrong place. It's worth revisiting this aliasing because it is an important function to the bitstream decoding.
+
+## Ablation Study
+
+The ablation study measures the performance on a machine with all the positive results above.
+
+First, run the special shell that will fix the CPU frequency and taskset our evaluation to that CPU, then run the ablation script. The results will be stored in `test_files/combined_results.csv`.
+
+## Lossless Changes
+
+### VP8L_USE_FAST_LOAD
+
+When libwebp is built for ARM or x86 (but not MIPS, the other major supported target), this is enabled for use in the function `src/utils/bit_reader_utils.c:VP8LDoFillBitWindow`.
+
+```c
+#if defined(__arm__) || defined(_M_ARM) || WEBP_AARCH64 || \
+    defined(__i386__) || defined(_M_IX86) || \
+    defined(__x86_64__) || defined(_M_X64)
+#define VP8L_USE_FAST_LOAD
+#endif
+
+#define VP8L_LOG8_WBITS 4  // Number of bytes needed to store VP8L_WBITS bits.
+
+
+#define VP8L_LBITS 64  // Number of bits prefetched (= bit-size of vp8l_val_t).
+#define VP8L_WBITS 32  // Minimum number of bytes ready after VP8LFillBitWindow.
+
+
+typedef uint64_t vp8l_val_t;  // right now, this bit-reader can only use 64bit.
+
+
+typedef struct {
+  vp8l_val_t     val_;        // pre-fetched bits
+  const uint8_t* buf_;        // input byte buffer
+  size_t         len_;        // buffer length
+  size_t         pos_;        // byte position in buf_
+  int            bit_pos_;    // current bit-reading position in val_
+  int            eos_;        // true if a bit was read past the end of buffer
+} VP8LBitReader;
+
+
+#if defined(WORDS_BIGENDIAN)
+#define HToLE32 BSwap32
+#define HToLE16 BSwap16
+#else
+#define HToLE32(x) (x)
+#define HToLE16(x) (x)
+#endif
+
+// memcpy() is the safe way of moving potentially unaligned 32b memory.
+static WEBP_INLINE uint32_t WebPMemToUint32(const uint8_t* const ptr) {
+  uint32_t A;
+  memcpy(&A, ptr, sizeof(A));
+  return A;
+}
+
+static void ShiftBytes(VP8LBitReader* const br) {
+  while (br->bit_pos_ >= 8 && br->pos_ < br->len_) {
+    br->val_ >>= 8;
+    br->val_ |= ((vp8l_val_t)br->buf_[br->pos_]) << (VP8L_LBITS - 8);
+    ++br->pos_;
+    br->bit_pos_ -= 8;
+  }
+  if (VP8LIsEndOfStream(br)) {
+    VP8LSetEndOfStream(br);
+  }
+}
+
+void VP8LDoFillBitWindow(VP8LBitReader* const br) {
+  assert(br->bit_pos_ >= VP8L_WBITS);
+#if defined(VP8L_USE_FAST_LOAD)
+  if (br->pos_ + sizeof(br->val_) < br->len_) {
+    br->val_ >>= VP8L_WBITS;
+    br->bit_pos_ -= VP8L_WBITS;
+    br->val_ |= (vp8l_val_t)HToLE32(WebPMemToUint32(br->buf_ + br->pos_)) <<
+                (VP8L_LBITS - VP8L_WBITS);
+    br->pos_ += VP8L_LOG8_WBITS;
+    return;
+  }
+#endif
+  ShiftBytes(br);       // Slow path.
+}
+
+// Advances the read buffer by 4 bytes to make room for reading next 32 bits.
+// Speed critical, but infrequent part of the code can be non-inlined.
+extern void VP8LDoFillBitWindow(VP8LBitReader* const br);
+static WEBP_INLINE void VP8LFillBitWindow(VP8LBitReader* const br) {
+  if (br->bit_pos_ >= VP8L_WBITS) VP8LDoFillBitWindow(br);
+}
+
+```
+
+According to the above code snippet, each call to `VP8LFillBitWindow` should be 4x faster because we do a single memcpy to get the pointer data as opposed to looping over at least 4 times to copy over values.
+
+The function `VP8LFillBitWindow` is called in 6 different places all in `src/dec/vp8l_dec.c`:
+1. Once in ReadHuffmanCodeLengths in a loop
+2. Twice in DecodeAlphaData, also in a loop.
+3. Three times in DecodeImageData, all three in a loop.
+
+We can enable it by passing in `-DVP8L_USE_FAST_LOAD` when compiling

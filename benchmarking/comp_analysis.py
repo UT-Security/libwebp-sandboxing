@@ -28,15 +28,19 @@ def generate_data():
   data = {}
   input_filenames = sorted(os.listdir(input_dir))
   for f in input_filenames:
-    data[f] = {}
-    for t in test_types:
-      #data[f][t] = (-1, [-1]) # Default throwaway values
-      results_file = os.path.join(results_dir, f + "_" + t + ".csv")
-      try:
+    try:
+      data[f] = {}
+      for t in test_types:
+        #data[f][t] = (-1, [-1]) # Default throwaway values
+        results_file = os.path.join(results_dir, f + "_" + t + ".csv")
+        
         raw_data = np.genfromtxt(results_file,delimiter='\n')
         data[f][t] = (np.mean(raw_data), raw_data)
-      except FileNotFoundError:
-        print(f"Unable to find {results_file}")
+    except FileNotFoundError:
+      print(f"Unable to find {results_file}")
+      print(f"Skipping {f}")
+      del data[f]
+
 
   return data
 
@@ -133,12 +137,14 @@ def generate_bar(data):
     # Trim trailing comma
     yaxis_str = yaxis_str[:-1]
     err_str = err_str[:-1]
-    print(x_axis)
+
+    xax = ",".join(x_axis) + "," + "_errorbar,".join(x_axis) + "_errorbar"
+    print(xax)
     print(yaxis_str)
     print(err_str)
 
-    data_file.write(str(x_axis) + "\n")
-    data_file.write(yaxis_str + "\n")
+    data_file.write(xax+ "\n")
+    data_file.write(yaxis_str + ",")
     data_file.write(err_str + "\n")
 
     if len(data.keys()) > 1:

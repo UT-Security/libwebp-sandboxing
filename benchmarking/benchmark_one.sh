@@ -1,15 +1,19 @@
 ## Optimizations to enable and test
 # Enable 64-bit registers in WASM
-BITSIZE=false
+BITSIZE=true
 # Use the hardcoded tree approach
-HARDCODED_TREE=false
+HARDCODED_TREE=true
 # Avoid indirect function calls by renaming functions
-DIRECT_CALL=false
+DIRECT_CALL=true
 # Mimic WEBP_RESTRICT by aliasing VP8BitReader in VP8ParseIntraModeRow
-ALIAS_VP8PARSEINTRAMODE=false
+ALIAS_VP8PARSEINTRAMODE=true
+# Use VP8L Fast Load to enable copying 4 bytes at a time
+VP8L_FASTLOAD=false
+# Use Direct function calls in the lossless path as well
+VP8L_DIRECTCALL=true
 
 ## Title for graph
-title="complete_decode_simde"
+title="complete_decode_simde_all"
 
 # Enable different features
 export WASM_COMPILER_DEFINES=" " # We add a space to avoid empty string redefinition
@@ -34,18 +38,28 @@ if [ "$ALIAS_VP8PARSEINTRAMODE" = true ]; then
     title="${title}_ALIASVP8PARSEINTRAMODEROW"
 fi
 
+if [ "$VP8L_FASTLOAD" = true ]; then
+    WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DVP8L_USE_FAST_LOAD"
+    title="${title}_VP8L_USE_FAST_LOAD"
+fi
+
+if [ "$VP8L_DIRECTCALL" = true ]; then
+    WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_LOSSLESS_DIRECT_CALL"
+    title="${title}_VP8L_DIRECTCALL"
+fi
+
 
 cur_date=$(date +%s)
 cur_dir=$(pwd)
 # Number of times to run the individual experiment
-N=100
+N=20
 # Number of times to run the overall experiment
 runs=1
 # Number of times to decode the image
 decode_count=100
 
 indir=inputs_one/
-infile=inputs_one/1.webp
+infile=inputs_one/1_webp_ll.webp
 outputdirname=tmp/${cur_date}_${title}
 
 # Build the library
@@ -74,6 +88,7 @@ do
         rm ${outdir}/${imagename}_${testname}.csv > /dev/null 2>&1
         for i in $(seq 1 $N)
         do
+            echo bin/decode_webp_${testname} ${indir}/${imagename} ${outdir}/${imagename}_${testname}.csv ${outdir}/${imagename}_${testname}.ppm ${decode_count}
             bin/decode_webp_${testname} ${indir}/${imagename} ${outdir}/${imagename}_${testname}.csv ${outdir}/${imagename}_${testname}.ppm ${decode_count} > ${logname} 2>&1
         done
         python3 stat_analysis.py "${outdir}/${imagename}_${testname}.csv" "${outdir}/${imagename}_${testname}_stats.txt" "${imagename} with ${testname}" "${outdir}/${imagename}_${testname}_stats.png"
