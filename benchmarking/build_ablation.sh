@@ -41,8 +41,11 @@ buildlibrary() {
         WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_BITSIZE"
     fi
 
+    # This enables/disables hardcoded tree for native and WASM
     if [ "$HARDCODED_TREE" = "true" ]; then
-        WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_HARDCODED_TREE"
+        WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DUSE_GENERIC_TREE=1"
+    else
+        WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DUSE_GENERIC_TREE=0"
     fi
 
     if [ "$DIRECT_CALL" = "true" ]; then

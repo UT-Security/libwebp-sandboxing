@@ -1,5 +1,5 @@
 # Install dependencies
-sudo apt install cpuset cpufrequtils
+sudo apt install cpuset cpufrequtils zip
 
 freq=2600MHz
 
