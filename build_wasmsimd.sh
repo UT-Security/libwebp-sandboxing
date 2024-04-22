@@ -27,12 +27,12 @@ if [ "$WASM_COMPILER_DEFINES" == "" ]; then
     WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_LOSSLESS_DIRECT_CALL"
 fi
 
-make clean > /dev/null
 echo "Building WASMSIMD version of libwebp"
 curprefix=$(pwd)/libwebp_wasmsimd
 
 mkdir -p ${curprefix}
 
+cd ${curprefix}
 
 CFLAGS="-O2 ${WASM_COMPILER_DEFINES} -D_WASI_EMULATED_SIGNAL -msimd128 -DWEBP_USE_SIMDE -DSIMDE_ENABLE_NATIVE_ALIASES -I${SIMDE_PATH}" \
 	LDFLAGS="-L${WASI_SDK_PATH}/share/wasi-sysroot/lib \
@@ -45,7 +45,7 @@ CFLAGS="-O2 ${WASM_COMPILER_DEFINES} -D_WASI_EMULATED_SIGNAL -msimd128 -DWEBP_US
 	LIBS=-lwasi-emulated-signal \
 	STRIP=${WASI_SDK_PATH}/bin/strip \
 	RANLIB=${WASI_SDK_PATH}/bin/ranlib \
-	./configure \
+	../configure \
 	--with-sysroot=${WASI_SDK_PATH}/share/wasi-sysroot \
 	--host=wasm32 \
 	--prefix=${curprefix} \
@@ -69,5 +69,4 @@ sed -i 's|/\* #undef WEBP_HAVE_SSE2 \*/|#define WEBP_HAVE_SSE2 1|' src/webp/conf
 make
 make install
 
-# We copy the config to verify each library is compiled with the same defs
-cp src/webp/config.h ${curprefix}/config.h
+cd ..

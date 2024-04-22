@@ -5,18 +5,18 @@ cur_dir=$(pwd)
 
 gentitle() {
     local BITSIZE=$1
-    local HARDCODED_TREE=$2
+    local USE_GENERIC_TREE=$2
     local DIRECT_CALL=$3
     local ALIAS_VP8PARSEINTRAMODE=$4
 
     result="baseline"
 
-    if [ "$BITSIZE" = "true" ]; then
+    if [ "$BITSIZE" = "56" ]; then
         result="${result}_BITS56"
     fi
 
-    if [ "$HARDCODED_TREE" = "true" ]; then
-        result="${result}_HARDCODEDTREE"
+    if [ "$USE_GENERIC_TREE" = "1" ]; then
+        result="${result}_USE_GENERIC_TREE"
     fi
 
     if [ "$DIRECT_CALL" = "true" ]; then
@@ -30,19 +30,23 @@ gentitle() {
 
 buildlibrary() {
     local BITSIZE=$1
-    local HARDCODED_TREE=$2
+    local USE_GENERIC_TREE=$2
     local DIRECT_CALL=$3
     local ALIAS_VP8PARSEINTRAMODE=$4
 
-    # Enable different features
+    # Enable different features in both native and wasm versions
     export WASM_COMPILER_DEFINES=" " # We add a space to avoid empty string redefinition
 
-    if [ "$BITSIZE" = "true" ]; then
-        WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_BITSIZE"
+
+    if [ "$BITSIZE" = "56" ]; then
+        WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DBITS=56"
+    else
+        WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DBITS=24"
     fi
 
     # This enables/disables hardcoded tree for native and WASM
-    if [ "$HARDCODED_TREE" = "true" ]; then
+    # Hardcoded Tree == TRUE means that Generic Tree is False
+    if [ "$USE_GENERIC_TREE" = "1" ]; then
         WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DUSE_GENERIC_TREE=1"
     else
         WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DUSE_GENERIC_TREE=0"
@@ -72,19 +76,16 @@ buildbin() {
     make all -B -C ${TGTDIR} > /dev/null
 }
 
-indir=inputs_one/
-infile=inputs_one/1.webp
-
 hostdir=tmp/${cur_date}_built_ablation
 mkdir -p ${hostdir}
 
 echo "Saving output to ${hostdir}"
 
 # Enable 64-bit registers in WASM
-for BITSIZE in 'false' 'true';
+for BITSIZE in '24' '56';
 do
     # Use the hardcoded tree approach
-    for HARDCODED_TREE in 'false' 'true';
+    for USE_GENERIC_TREE in '0' '1';
     do
         # Avoid indirect function calls by renaming functions
         for DIRECT_CALL in 'false' 'true';
@@ -93,13 +94,13 @@ do
             for ALIAS_VP8PARSEINTRAMODE in 'false' 'true';
             do
                 # Produces $result
-                gentitle ${BITSIZE} ${HARDCODED_TREE} ${DIRECT_CALL} ${ALIAS_VP8PARSEINTRAMODE}
+                gentitle ${BITSIZE} ${USE_GENERIC_TREE} ${DIRECT_CALL} ${ALIAS_VP8PARSEINTRAMODE}
 
                 # Build the Library and Binary
                 curdir=${hostdir}/$result
                 mkdir -p ${curdir}
 
-                buildlibrary ${BITSIZE} ${HARDCODED_TREE} ${DIRECT_CALL} ${ALIAS_VP8PARSEINTRAMODE}
+                buildlibrary ${BITSIZE} ${USE_GENERIC_TREE} ${DIRECT_CALL} ${ALIAS_VP8PARSEINTRAMODE}
                 # Backup the built library
                 cp -r ../libwebp_* ${curdir}/
                 

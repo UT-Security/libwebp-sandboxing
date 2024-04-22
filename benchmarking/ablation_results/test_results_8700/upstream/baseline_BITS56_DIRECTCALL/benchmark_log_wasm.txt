@@ -1,0 +1,3 @@
+Time to decode inputs_one//1.webp 100 times: 0.5654540000s
+Saving 607215 bytes to test_results//upstream/baseline_BITS56_DIRECTCALL/1.webp_wasm.ppm
+WASM Webp version 1.3.2 (outputting image)

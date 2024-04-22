@@ -24,7 +24,7 @@ OUTPUT_IMAGE=-DOUTPUT_IMAGE
 # Set this to -DINCREMENTAL to use the incremental decoder
 INCREMENTAL=-DINCREMENTAL
 
-COMPILE_FLAGS=-g -O2 -static ${OUTPUT_IMAGE} ${INCREMENTAL} -fdebug-default-version=4 -msse4.1 # -mavx2 is not supported on this VM
+COMPILE_FLAGS=-g -O2 -static ${OUTPUT_IMAGE} ${INCREMENTAL} -fdebug-default-version=4 -mavx2 -march=x86-64 # -mavx2 is not supported on this VM
 
 ifdef OUTPUT_IMAGE
 UVWASI_RESOURCES=uvwasi-rt.c $(UVWASI_PATH)/out/cmake/libuvwasi_a.a $(UVWASI_PATH)/out/cmake/_deps/libuv-build/libuv_a.a -I $(UVWASI_PATH)/include/
@@ -67,7 +67,7 @@ decode_webp_wasmsimd.wasm: decode_webp.c ../libwebp_wasmsimd/lib/libwebp.a
 
 decode_webp_wasmsimd.c: decode_webp_wasmsimd.wasm
 	${WASM2C_BIN} $^ -o $@
-
+ 
 ${OUT_DIR}/decode_webp_wasmsimd: main_wasm.c decode_webp_wasmsimd.c
 	${CC} ${COMPILE_FLAGS} -o $@ $^ ${WASM2C_DEP} ${UVWASI_RESOURCES} ${WASMSIMD_FLAGS}
 

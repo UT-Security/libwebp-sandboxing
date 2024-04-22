@@ -1,0 +1,17 @@
+averages: 
+  native without sse2    : 0.5364396000000001
+  native with sse2       : 0.40436344999999996
+  wasm2c without simd128 : 0.5314268
+  wasm2c with simd128    : 0.3789393499999999
+
+performance increase percentage [100 * (hi - lo) / lo]: 
+  native without sse2 -> native with sse2       : 32.66273200508112
+  wasm2c without simd128 -> wasm2c with simd128 : 40.24059522981715
+  wasm2c with simd128 -> native with sse2       : -6.287437699920718
+  wasm2c without simd128 -> native without sse2 : -0.9344574859872666
+
+time reduction percentage [100 * (hi - lo) / hi]: 
+  native without sse2 -> native with sse2       : 24.620879964864663
+  wasm2c without simd128 -> wasm with simd128   : 28.69397064656884
+  wasm2c with simd128 -> native with sse2       : -6.70927946648984
+  wasm2c without simd128 -> native without sse2 : -0.9432719614442009

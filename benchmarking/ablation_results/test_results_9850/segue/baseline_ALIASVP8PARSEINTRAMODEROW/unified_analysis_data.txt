@@ -1,0 +1,2 @@
+native_unchanged,nativesimd_unchanged,native,nativesimd,wasm,wasmsimd,native_unchanged_errorbar,nativesimd_unchanged_errorbar,native_errorbar,nativesimd_errorbar,wasm_errorbar,wasmsimd_errorbar
+0.4639,0.3432,0.4853,0.3425,0.5435,0.3863,0.0008856108759227323,0.00029807478993490433,0.0004404017418341205,0.00030643415709019514,0.00045620087608651516,0.006126547770875193

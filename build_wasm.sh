@@ -25,12 +25,12 @@ if [ "$WASM_COMPILER_DEFINES" == "" ]; then
 fi
 
 echo After: "$WASM_COMPILER_DEFINES"
-make clean > /dev/null
 echo "Building WASM version of libwebp"
 curprefix=$(pwd)/libwebp_wasm
 
 mkdir -p ${curprefix}
 
+cd ${curprefix}
 
 CFLAGS="-O2 ${WASM_COMPILER_DEFINES} -D_WASI_EMULATED_SIGNAL" \
 	LDFLAGS="-L${WASI_SDK_PATH}/share/wasi-sysroot/lib \
@@ -43,7 +43,7 @@ CFLAGS="-O2 ${WASM_COMPILER_DEFINES} -D_WASI_EMULATED_SIGNAL" \
 	LIBS=-lwasi-emulated-signal \
 	STRIP=${WASI_SDK_PATH}/bin/strip \
 	RANLIB=${WASI_SDK_PATH}/bin/ranlib \
-	./configure \
+	../configure \
 	--with-sysroot=${WASI_SDK_PATH}/share/wasi-sysroot \
 	--host=wasm32 \
 	--prefix=${curprefix} \
@@ -61,5 +61,4 @@ CFLAGS="-O2 ${WASM_COMPILER_DEFINES} -D_WASI_EMULATED_SIGNAL" \
 make
 make install
 
-# We copy the config to verify each library is compiled with the same defs
-cp src/webp/config.h ${curprefix}/config.h
+cd ..

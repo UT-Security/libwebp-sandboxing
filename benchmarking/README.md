@@ -8,6 +8,12 @@ We have two environments we are testing on:
 1. Debian 6.1.38 with an AMD EPYC 7713P 64-Core Processor, 128 threads, 1TB of RAM
 2. Ubuntu 22.04 Virtual Machine, Windows 11 Host, with an Intel i7-9850H 6-core Processor 12 threads, 4 GB RAM allocated.
 
+### Confidence Building Measures in Testing Environment
+
+- Confirm the outputs are the same
+- Try multiple images to see if the percentages are proportional
+- Confirm the PID matches the cpuset ID. 
+
 ## Tests
 We are currently focusing on lossy webp with no alpha and no animation.
 

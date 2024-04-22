@@ -95,6 +95,7 @@ do
 done
 
 cat /proc/cpuinfo > ${resultsdir}/device_info.txt
+uname -a >> ${resultsdir}/device_info.txt
 
 zip -r results.zip ${resultsdir}
 

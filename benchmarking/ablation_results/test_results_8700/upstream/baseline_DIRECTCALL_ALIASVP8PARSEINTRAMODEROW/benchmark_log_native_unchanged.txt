@@ -1,0 +1,3 @@
+Time to decode inputs_one//1.webp 100 times: 0.4885240000s
+Saving 607215 bytes to test_results//upstream/baseline_DIRECTCALL_ALIASVP8PARSEINTRAMODEROW/1.webp_native_unchanged.ppm
+Webp version 1.3.2 (outputting image)
