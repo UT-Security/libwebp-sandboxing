@@ -12,10 +12,10 @@
 int main(int argc, const char* argv[]) {
   const char* in_file = NULL;
   const char* out_time_file = NULL;
-  const char* out_file_name = "native_out.ppm";
+  const char* out_file_name = "native_out.pam";
   int iterations = 100;
 
-  printf("Webp version 1.3.2");
+  printf("Webp version 1.4.0");
 
 #ifdef OUTPUT_IMAGE
   printf(" (outputting image)\n");

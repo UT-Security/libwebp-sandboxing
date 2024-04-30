@@ -284,10 +284,10 @@ def run_decode_webp(work_dir, ver, image_path, iter_amount, decode_count, title)
 
     prog = f"{work_dir}/decode_webp_{ver}"
     out_csv = f"{work_dir}/{image_path}_{ver}.csv"
-    out_ppm = f"{work_dir}/{image_path}_{ver}.ppm"
+    out_pam = f"{work_dir}/{image_path}_{ver}.pam"
 
     for _ in range(iter_amount):
-        p = run([prog, image_path, out_csv, out_ppm, decode_count], stdout=PIPE, stderr=PIPE)
+        p = run([prog, image_path, out_csv, out_pam, decode_count], stdout=PIPE, stderr=PIPE)
 
     out_stats = f"{work_dir}/{image_path}_{ver}_stats.txt"
     out_fig   = f"{work_dir}/{image_path}_{ver}_stats.png"

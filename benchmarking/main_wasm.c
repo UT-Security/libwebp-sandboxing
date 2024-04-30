@@ -18,13 +18,13 @@
 int main(int argc, const char** argv) {
   const char* in_file = NULL;
   const char* out_time_file = NULL;
-  const char* out_file_name = "wasm_out.ppm";
+  const char* out_file_name = "wasm_out.pam";
   int iterations = 100;
 
 #ifdef ENABLE_SIMD
-  printf("WASMSIMD Webp version 1.3.2");
+  printf("WASMSIMD Webp version 1.4.0");
 #else
-  printf("WASM Webp version 1.3.2");
+  printf("WASM Webp version 1.4.0");
 #endif
 
 #ifdef OUTPUT_IMAGE

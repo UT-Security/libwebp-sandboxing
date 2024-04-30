@@ -1,6 +1,6 @@
 #include "decode_webp.h"
 
-// Uncommenting this out saves the image to out.ppm
+// Uncommenting this out saves the image to out.pam
 //#define OUTPUT_IMAGE
 
 // Use the incremental decoder
@@ -15,19 +15,24 @@
 extern void* VP8GetCPUInfo;   // opaque forward declaration.
 
 #ifdef OUTPUT_IMAGE
-int WebPWritePPM(WebPDecoderConfig *config, uint8_t** result, size_t* result_size) {
+int WebPWritePPMPAM(WebPDecoderConfig *config, uint8_t** result, size_t* result_size, int alpha) {
   const WebPDecBuffer* const buffer = &(config->output);
   const uint32_t width = buffer->width;
   const uint32_t height = buffer->height;
   const uint8_t* row = buffer->u.RGBA.rgba;
   const int stride = buffer->u.RGBA.stride;
-  const size_t bytes_per_px = 3;
+  const size_t bytes_per_px = alpha ? 4 : 3;
   uint32_t y;
 
-  char* header = malloc(30);
+  char* header = malloc(128);
   if (header == NULL) return 0;
-  memset(header, 0, 30);
-  snprintf(header, 30, "P6\n%u %u\n255\n", width, height);
+  memset(header, 0, 128);
+  if (alpha) {
+    snprintf(header, 128, "P7\nWIDTH %u\nHEIGHT %u\nDEPTH 4\nMAXVAL 255\n"
+                    "TUPLTYPE RGB_ALPHA\nENDHDR\n", width, height);
+  } else {
+    snprintf(header, 30, "P6\n%u %u\n255\n", width, height);
+  }
   size_t header_size = strlen(header);
 
   // Allocate the size of the result
@@ -58,9 +63,9 @@ int DecodeWebpImage(const uint8_t* data, size_t data_size, int iterations, uint8
   if (!WebPInitDecoderConfig(&config)){
     return -1;
   }
-  // Used for writing PPM
+  // Used for writing PAM
   // Firefox has the following snippet of code:
-  // https://searchfox.org/mozilla-central/source/image/decoders/nsWebPDecoder.cpp#224
+  // https://searchfox.org/mozilla-central/rev/1e743db12971e365d1f8fc04c0c52ed55c01494b/image/decoders/nsWebPDecoder.cpp#230-243
   //   case SurfaceFormat::B8G8R8A8:
   //     mBuffer.colorspace = MODE_BGRA;
   //     break;
@@ -71,7 +76,7 @@ int DecodeWebpImage(const uint8_t* data, size_t data_size, int iterations, uint8
   //     mBuffer.colorspace = MODE_RGBA;
   //     break;
   //   default:
-  output_buffer->colorspace = MODE_RGB; // Firefox only reads the RGB so we keep this simple
+  output_buffer->colorspace = MODE_RGBA; // Default to RGBA for now
 
 #ifdef INCREMENTAL
   for(int i = 0; i < iterations; i++){
@@ -95,8 +100,8 @@ int DecodeWebpImage(const uint8_t* data, size_t data_size, int iterations, uint8
   if (status == VP8_STATUS_OK) ok = 1;
 
 #ifdef OUTPUT_IMAGE
-  // Firefox calls WebPIDecGetRGB to get the values to write out
-  ok = WebPWritePPM(&config, result, result_size);
+  // Firefox calls WebPIDecGetRGB to get the values to write out, but this is a RGBA output
+  ok = WebPWritePPMPAM(&config, result, result_size, 1);
 #endif
 
   WebPFreeDecBuffer(output_buffer);

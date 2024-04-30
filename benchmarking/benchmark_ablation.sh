@@ -79,13 +79,13 @@ do
 
                         for i in $(seq 1 $N)
                         do
-                            ${workdir}/decode_webp_${t} ${indir}/${imagename} ${outdir}/${imagename}_${t}.csv ${outdir}/${imagename}_${t}.ppm ${decode_count} > ${logname} 2>&1
+                            ${workdir}/decode_webp_${t} ${indir}/${imagename} ${outdir}/${imagename}_${t}.csv ${outdir}/${imagename}_${t}.pam ${decode_count} > ${logname} 2>&1
                         done
                         virtualenv/bin/python3 stat_analysis.py "${outdir}/${imagename}_${t}.csv" "${outdir}/${imagename}_${t}_stats.txt" "${imagename} with ${t}" "${outdir}/${imagename}_${t}_stats.png"
                         sleep 1
                     done
 
-                    sha256sum ${outdir}/*.ppm
+                    sha256sum ${outdir}/*.pam
                     virtualenv/bin/python3 comp_analysis.py ${indir} ${outdir} "${title}"
                     echo "${WABT_TYPE}, ${BITSIZE}, ${HARDCODED_TREE}, ${DIRECT_CALL}, ${ALIAS_VP8PARSEINTRAMODE}, $(tail -1 ${outdir}/unified_analysis_data.txt)" >> $combined_log
                 done
