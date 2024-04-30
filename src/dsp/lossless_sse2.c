@@ -611,7 +611,10 @@ static void ConvertBGRAToRGB_SSE2(const uint32_t* src, int num_pixels,
   }
 }
 
-static void ConvertBGRAToRGBA_SSE2(const uint32_t* src,
+#if !defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+static
+#endif
+void ConvertBGRAToRGBA_SSE2(const uint32_t* src,
                                    int num_pixels, uint8_t* dst) {
   const __m128i red_blue_mask = _mm_set1_epi32(0x00ff00ff);
   const __m128i* in = (const __m128i*)src;

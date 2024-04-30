@@ -24,7 +24,7 @@ OUTPUT_IMAGE=-DOUTPUT_IMAGE
 # Set this to -DINCREMENTAL to use the incremental decoder
 INCREMENTAL=-DINCREMENTAL
 
-COMPILE_FLAGS=-g -O2 -static ${OUTPUT_IMAGE} ${INCREMENTAL} -fdebug-default-version=4 -msse4.1 -march=x86-64 # -mavx2 is not supported on this VM
+COMPILE_FLAGS=-g -O2 -static ${OUTPUT_IMAGE} ${INCREMENTAL} -fdebug-default-version=4 -mavx2 -march=x86-64
 
 ifdef OUTPUT_IMAGE
 UVWASI_RESOURCES=uvwasi-rt.c $(UVWASI_PATH)/out/cmake/libuvwasi_a.a $(UVWASI_PATH)/out/cmake/_deps/libuv-build/libuv_a.a -I $(UVWASI_PATH)/include/

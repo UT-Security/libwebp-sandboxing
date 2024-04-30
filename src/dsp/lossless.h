@@ -328,6 +328,9 @@ void PredictorAdd13_SSE2(const uint32_t* in, const uint32_t* upper,
 void AddGreenToBlueAndRed_SSE2(const uint32_t* const src, int num_pixels,
                                       uint32_t* dst);
 
+void ConvertBGRAToRGBA_SSE2(const uint32_t* src,
+                                   int num_pixels, uint8_t* dst);
+
 void TransformColorInverse_SSE41(const VP8LMultipliers* const m,
                                         const uint32_t* const src,
                                         int num_pixels, uint32_t* dst);

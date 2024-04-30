@@ -46,6 +46,7 @@
 #define AddGreenToBlueAndRed VP8LAddGreenToBlueAndRed_C
 
 #define ConvertBGRAToRGB VP8LConvertBGRAToRGB_C
+#define ConvertBGRAToRGBA VP8LConvertBGRAToRGBA_C
 
 #define ConvertBGRAToBGR VP8LConvertBGRAToBGR_C
 
@@ -92,6 +93,9 @@
 
 #undef ConvertBGRAToRGB
 #define ConvertBGRAToRGB ConvertBGRAToRGB_SSE41
+
+#undef ConvertBGRAToRGBA
+#define ConvertBGRAToRGBA ConvertBGRAToRGBA_SSE2
 
 #undef ConvertBGRAToBGR
 #define ConvertBGRAToBGR ConvertBGRAToBGR_SSE41
@@ -699,7 +703,11 @@ void VP8LConvertFromBGRA(const uint32_t* const in_data, int num_pixels,
 #endif
       break;
     case MODE_RGBA:
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+      ConvertBGRAToRGBA(in_data, num_pixels, rgba);
+#else
       VP8LConvertBGRAToRGBA(in_data, num_pixels, rgba);
+#endif
       break;
     case MODE_rgbA:
       VP8LConvertBGRAToRGBA(in_data, num_pixels, rgba);
