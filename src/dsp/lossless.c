@@ -39,7 +39,6 @@
 #define PredictorAdd11 PredictorAdd11_C
 #define PredictorAdd12 PredictorAdd12_C
 #define PredictorAdd13 PredictorAdd13_C
-#define PredictorAdd14 PredictorAdd14_C
 
 #define TransformColorInverse VP8LTransformColorInverse_C
 
@@ -64,10 +63,9 @@
 #undef PredictorAdd8
 #undef PredictorAdd9
 #undef PredictorAdd10
-#undef PredictorAdd11
+//#undef PredictorAdd11
 #undef PredictorAdd12
 #undef PredictorAdd13
-#undef PredictorAdd14
 
 #define PredictorAdd0  PredictorAdd0_SSE2
 #define PredictorAdd1  PredictorAdd1_SSE2
@@ -80,13 +78,15 @@
 #define PredictorAdd8  PredictorAdd8_SSE2
 #define PredictorAdd9  PredictorAdd9_SSE2
 #define PredictorAdd10 PredictorAdd10_SSE2
-#define PredictorAdd11 PredictorAdd11_SSE2
+//#define PredictorAdd11 PredictorAdd11_SSE2
 #define PredictorAdd12 PredictorAdd12_SSE2
 #define PredictorAdd13 PredictorAdd13_SSE2
-#define PredictorAdd14 PredictorAdd14_SSE2
 
-#undef TransformColorInverse
-#define TransformColorInverse TransformColorInverse_SSE41
+//#undef PredictorAdd11
+//#define PredictorAdd11 PredictorAdd11_NEON
+
+//#undef TransformColorInverse
+//#define TransformColorInverse TransformColorInverse_SSE41
 
 #undef AddGreenToBlueAndRed
 #define AddGreenToBlueAndRed AddGreenToBlueAndRed_SSE2
@@ -340,67 +340,124 @@ static void PredictorInverseTransform_C(const VP8LTransform* const transform,
       while (x < width) {
         int x_end = (x & ~mask) + tile_width;
         if (x_end > width) x_end = width;
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+
         {
           const uint32_t pred_idx = ((*pred_mode_src++) >> 8) & 0xf;
+          const uint32_t* p_in = in + x;
+          const uint32_t* p_upper = out + x - width;
+          const int p_num_pixels =  x_end - x;
+          uint32_t* p_out = out + x;
           switch (pred_idx) {
             case 0:
-              PredictorAdd0(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd0( p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[0](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 1:
-              PredictorAdd1(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd1( p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[1](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 2:
-              PredictorAdd2(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd2( p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[2](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 3:
-              PredictorAdd3(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd3( p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[3](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 4:
-              PredictorAdd4(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd4( p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[4](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 5:
-              PredictorAdd5(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd5( p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[5](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 6:
-              PredictorAdd6(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd6( p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[6](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 7:
-              PredictorAdd7(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd7( p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[7](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 8:
-              PredictorAdd8(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd8( p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[8](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 9:
-              PredictorAdd9(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd9( p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[9](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 10:
-              PredictorAdd10(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd10(p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[10](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 11:
-              PredictorAdd11(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd11(p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[11](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 12:
-              PredictorAdd12(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd12(p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[12](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 13:
-              PredictorAdd13(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd13(p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[13](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             case 14: /* padding security sentinels */
             case 15: 
-              PredictorAdd0(in + x, out + x - width, x_end - x, out + x);
+#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+              PredictorAdd0( p_in, p_upper, p_num_pixels, p_out);
+#else
+              VP8LPredictorsAdd[0](p_in, p_upper, p_num_pixels, p_out);
+#endif
               break;
             default: // Not reachable
               assert(0);
           }
         }
-#else
-        {
-          const VP8LPredictorAddSubFunc pred_func =
-              VP8LPredictorsAdd[((*pred_mode_src++) >> 8) & 0xf];
-          pred_func(in + x, out + x - width, x_end - x, out + x);
-        }
-#endif
         x = x_end;
       }
       in += width;
