@@ -117,34 +117,26 @@
 #define VP8PredLuma4LD            LD4_SSE2
 #define VP8PredLuma4VL            VL4_SSE2
 
-#undef VP8PredLuma16DC
 #undef VP8PredLuma16TM
 #undef VP8PredLuma16VE
 #undef VP8PredLuma16HE
 #undef VP8PredLuma16DCNoTop
-#undef VP8PredLuma16DCNoLeft
 #undef VP8PredLuma16DCNoTopLeft
 
-#define VP8PredLuma16DC          DC16_SSE2
 #define VP8PredLuma16TM          TM16_SSE2
 #define VP8PredLuma16VE          VE16_SSE2
 #define VP8PredLuma16HE          HE16_SSE2
 #define VP8PredLuma16DCNoTop     DC16NoTop_SSE2
-#define VP8PredLuma16DCNoLeft    DC16NoLeft_SSE2
 #define VP8PredLuma16DCNoTopLeft DC16NoTopLeft_SSE2
 
-#undef VP8PredChroma8DC
 #undef VP8PredChroma8TM
 #undef VP8PredChroma8VE
 #undef VP8PredChroma8DCNoTop
-#undef VP8PredChroma8DCNoLeft
 #undef VP8PredChroma8DCNoTopLeft
 
-#define VP8PredChroma8DC          DC8uv_SSE2
 #define VP8PredChroma8TM          TM8uv_SSE2
 #define VP8PredChroma8VE          VE8uv_SSE2
 #define VP8PredChroma8DCNoTop     DC8uvNoTop_SSE2
-#define VP8PredChroma8DCNoLeft    DC8uvNoLeft_SSE2
 #define VP8PredChroma8DCNoTopLeft DC8uvNoTopLeft_SSE2
 
 #undef VP8PredLuma16HE
