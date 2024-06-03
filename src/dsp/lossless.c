@@ -50,7 +50,7 @@
 #define ConvertBGRAToBGR VP8LConvertBGRAToBGR_C
 
 // Direct SIMDe functions
-#if defined(WEBP_USE_SIMDE)
+#if defined(WEBP_WASM_LOSSLESS_SIMD_DIRECT_CALL)
 
 #undef PredictorAdd0
 #undef PredictorAdd1
@@ -100,7 +100,7 @@
 #undef ConvertBGRAToBGR
 #define ConvertBGRAToBGR ConvertBGRAToBGR_SSE41
 
-#endif /* WEBP_USE_SIMDE */
+#endif /* WEBP_WASM_LOSSLESS_SIMD_DIRECT_CALL */
 #endif /* WEBP_WASM_LOSSLESS_DIRECT_CALL */
 
 

@@ -25,8 +25,8 @@ if [ "$WASM_COMPILER_DEFINES" == "" ]; then
 fi
 
 echo After: "$WASM_COMPILER_DEFINES"
-echo "Building WASM version of libwebp"
-curprefix=$(pwd)/libwebp_wasm
+echo "Building WASM version of libwebp (with autovec)"
+curprefix=$(pwd)/libwebp_wasmautovec
 
 mkdir -p ${curprefix}
 
@@ -36,7 +36,8 @@ cd ${curprefix}
 # only the feature flags, it won't work, so we clean it out :/
 make clean
 
-CFLAGS="-O2 ${WASM_COMPILER_DEFINES} -D_WASI_EMULATED_SIGNAL" \
+# Enable autovectorization with -msimd128
+CFLAGS="-O2 ${WASM_COMPILER_DEFINES} -D_WASI_EMULATED_SIGNAL -msimd128" \
 	LDFLAGS="-L${WASI_SDK_PATH}/share/wasi-sysroot/lib \
 		-Wl,--no-entry \
 		-Wl,--export-all \
@@ -60,6 +61,7 @@ CFLAGS="-O2 ${WASM_COMPILER_DEFINES} -D_WASI_EMULATED_SIGNAL" \
 	--disable-threading \
 	--disable-sse4.1 \
 	--disable-sse2
+
 
 make
 make install

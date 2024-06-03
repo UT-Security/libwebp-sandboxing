@@ -6,7 +6,7 @@ fi
 export WORK_DIR=/home/wrv/research/wasmperf
 
 export WASI_SDK_PATH=${WORK_DIR}/wasi-sdk-21.0
-export SIMDE_PATH=${WORK_DIR}/simde-0.7.6
+export SIMDE_PATH=${WORK_DIR}/simde-0.8.2
 
 ./build_native.sh
 ./build_nativesimd.sh

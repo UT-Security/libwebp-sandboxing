@@ -1,11 +1,17 @@
 echo "Building Native version of libwebp"
 curprefix=$(pwd)/libwebp_native
 
+echo Using NATIVE_COMPILER_DEFINES: "$NATIVE_COMPILER_DEFINES"
+
 mkdir -p ${curprefix}
 
 cd ${curprefix}
 
-CFLAGS="-O2"\
+# If we're trying to recompile without changing the code, but changing
+# only the feature flags, it won't work, so we clean it out :/
+make clean
+
+CFLAGS="-O2 ${NATIVE_COMPILER_DEFINES}"\
 	../configure \
 	--prefix=${curprefix} \
 	--disable-libwebpdemux \

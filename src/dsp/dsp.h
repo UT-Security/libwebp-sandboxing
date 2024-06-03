@@ -572,7 +572,7 @@ void DC8uvNoLeft_C(uint8_t* dst);
 void DC8uvNoTopLeft_C(uint8_t* dst);
 
 // Define SIMDe functions
-#if defined(WEBP_USE_SIMDE)
+#if defined(WEBP_WASM_LOSSY_DIRECT_FUNCTION_CALL)
 void Transform_SSE2(const int16_t* in, uint8_t* dst, int do_two);
 
 void SimpleHFilter16_SSE2(uint8_t* p, int stride, int thresh);
@@ -625,7 +625,7 @@ void DC8uvNoTopLeft_SSE2(uint8_t* dst);
 
 
 void HE16_SSE41(uint8_t* dst);
-#endif // WEBP_USE_SIMDE
+#endif // WEBP_WASM_LOSSY_DIRECT_FUNCTION_CALL
 #endif // WEBP_WASM_DIRECT_FUNCTION_CALL
 
 #ifdef __cplusplus
