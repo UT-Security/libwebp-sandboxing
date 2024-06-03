@@ -23,9 +23,9 @@ cmake --build .
 cd ../../
 
 ## Get WASI
-wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-21/wasi-sdk-21.0-linux.tar.gz
-tar xvzf wasi-sdk-21.0-linux.tar.gz
-### Should now live in wasi-sdk-21.0/
+wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-22/wasi-sdk-22.0-linux.tar.gz
+tar xvzf wasi-sdk-22.0-linux.tar.gz
+### Should now live in wasi-sdk-22.0/
 
 
 ## Get SIMDe

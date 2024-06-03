@@ -2,7 +2,7 @@
 # Enable 64-bit registers in WASM
 BITSIZE=true
 # Use the hardcoded tree approach
-HARDCODED_TREE=true
+USE_GENERIC_TREE=false
 # Avoid indirect function calls by renaming functions
 DIRECT_CALL=true
 # Mimic WEBP_RESTRICT by aliasing VP8BitReader in VP8ParseIntraModeRow
@@ -17,34 +17,41 @@ title="complete_decode_simde_all"
 
 # Enable different features
 export WASM_COMPILER_DEFINES=" " # We add a space to avoid empty string redefinition
+export WASMSIMD_COMPILER_DEFINES=" " # We add a space to avoid empty string redefinition
 
 if [ "$BITSIZE" = true ]; then
     WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_BITSIZE"
+    WASMSIMD_COMPILER_DEFINES="${WASMSIMD_COMPILER_DEFINES} -DWEBP_WASM_BITSIZE"
     title="${title}_BITS56"
 fi
 
-if [ "$HARDCODED_TREE" = true ]; then
-    WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_HARDCODED_TREE"
-    title="${title}_HARDCODEDTREE"
+if [ "$USE_GENERIC_TREE" = false ]; then
+    WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DUSE_GENERIC_TREE=0"
+    WASMSIMD_COMPILER_DEFINES="${WASMSIMD_COMPILER_DEFINES} -DUSE_GENERIC_TREE=0"
+    title="${title}_USE_GENERIC_TREE0"
 fi
 
 if [ "$DIRECT_CALL" = true ]; then
     WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_DIRECT_FUNCTION_CALL"
+    WASMSIMD_COMPILER_DEFINES="${WASMSIMD_COMPILER_DEFINES} -DWEBP_WASM_DIRECT_FUNCTION_CALL"
     title="${title}_DIRECTCALL"
 fi
 
 if [ "$ALIAS_VP8PARSEINTRAMODE" = true ]; then
     WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_ALIAS_VP8PARSEINTRAMODEROW"
+    WASMSIMD_COMPILER_DEFINES="${WASMSIMD_COMPILER_DEFINES} -DWEBP_WASM_ALIAS_VP8PARSEINTRAMODEROW"
     title="${title}_ALIASVP8PARSEINTRAMODEROW"
 fi
 
 if [ "$VP8L_FASTLOAD" = true ]; then
     WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DVP8L_USE_FAST_LOAD"
+    WASMSIMD_COMPILER_DEFINES="${WASMSIMD_COMPILER_DEFINES} -DVP8L_USE_FAST_LOAD"
     title="${title}_VP8L_USE_FAST_LOAD"
 fi
 
 if [ "$VP8L_DIRECTCALL" = true ]; then
     WASM_COMPILER_DEFINES="${WASM_COMPILER_DEFINES} -DWEBP_WASM_LOSSLESS_DIRECT_CALL"
+    WASMSIMD_COMPILER_DEFINES="${WASMSIMD_COMPILER_DEFINES} -DWEBP_WASM_LOSSLESS_DIRECT_CALL -DWEBP_WASM_LOSSLESS_SIMD_DIRECT_CALL"
     title="${title}_VP8L_DIRECTCALL"
 fi
 
@@ -58,14 +65,15 @@ runs=1
 # Number of times to decode the image
 decode_count=100
 
-indir=images/lossless
-infile=${indir}/3_webp_ll.webp
+indir=images/lossy
+infile=${indir}/1.webp
 outputdirname=tmp/${cur_date}_${title}
 
 # Build the library
 if [ "$1" = "build" ]; then
     echo "Building!"
     echo "WASM_COMPILER_DEFINES: ${WASM_COMPILER_DEFINES}"
+    echo "WASMSIMD_COMPILER_DEFINES: ${WASMSIMD_COMPILER_DEFINES}"
     cd ..
     ./build.sh
     cd ${cur_dir}

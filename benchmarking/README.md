@@ -85,7 +85,7 @@ When bitstream parsing, libwebp will cache some number of bytes in the VP8BitRea
 
 Inside of `src/utils/bit_reader_utils.h` we add a new condition to ensure the BITS definition is set to use its 64-bit representation on WASM.
 
-### USE_GENERIC_TREE (BP): WEBP_WASM_HARDCODED_TREE
+### Use Hardcoded Tree (BP): USE_GENERIC_TREE=0
 Inside of [src/dec/tree_dec.c](../src/dec/tree_dec.c) we have the following snippet at the top:
 ```c
 #if !defined(USE_GENERIC_TREE)

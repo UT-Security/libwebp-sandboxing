@@ -10,9 +10,8 @@ sudo cpufreq-set -c 2 -g performance
 sudo cpufreq-set -c 2 --min ${freq} --max ${freq}
 # set cpu shield on CPU 2
 sudo cset shield -c 2 -k on
-sudo cset shield -e sudo -- -u "$USER" env "PATH=$PATH" ./benchmark_ablation.sh
-
-# You are in a subshell now, run your benchmark here
+sudo cset shield -e sudo -- -u "$USER" env "PATH=$PATH" ./benchmark_lossy_ablation.sh
+sudo cset shield -e sudo -- -u "$USER" env "PATH=$PATH" ./benchmark_lossless_ablation.sh
 
 # Ctrl+D to close the current subshell
 # Enable hyperthreading

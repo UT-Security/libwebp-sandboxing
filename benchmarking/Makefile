@@ -2,7 +2,7 @@ CC=clang
 OUT_DIR=bin
 WORK_DIR=/home/wrv/research/wasmperf
 WASI_SDK_PATH=${WORK_DIR}/wasi-sdk-21.0
-SIMDE_PATH=${WORK_DIR}/simde-0.7.6
+SIMDE_PATH=${WORK_DIR}/simde-0.8.2
 WABT_PATH=${WORK_DIR}/wabt_src
 UVWASI_PATH=${WORK_DIR}/uvwasi-0.0.19
 

@@ -57547,100 +57547,140 @@ void w2c_decode__webp__wasm_VP8LBitReaderSetBuffer(w2c_decode__webp__wasm* insta
 }
 
 void w2c_decode__webp__wasm_VP8LDoFillBitWindow(w2c_decode__webp__wasm* instance, u32 var_p0) {
-  u32 var_l1 = 0, var_l2 = 0, var_l3 = 0, var_l4 = 0, var_l7 = 0;
-  u64 var_l5 = 0, var_l6 = 0;
+  u32 var_l1 = 0, var_l2 = 0, var_l5 = 0, var_l6 = 0, var_l7 = 0, var_l8 = 0;
+  u64 var_l3 = 0, var_l4 = 0;
   FUNC_PROLOGUE;
   u32 var_i0, var_i1, var_i2, var_i3;
   u64 var_j0, var_j1, var_j2;
   var_i0 = var_p0;
-  var_i0 = i32_load(&instance->w2c_memory, (u64)(var_i0) + 20u);
+  var_i0 = i32_load(&instance->w2c_memory, (u64)(var_i0) + 16u);
   var_l1 = var_i0;
   var_i1 = 8u;
-  var_i0 = (u32)((s32)var_i0 >= (s32)var_i1);
-  if (var_i0) {goto var_B1;}
-  var_i0 = var_l1;
-  var_l2 = var_i0;
-  goto var_B0;
-  var_B1:;
-  var_i0 = var_p0;
-  var_i0 = i32_load(&instance->w2c_memory, (u64)(var_i0) + 16u);
-  var_l3 = var_i0;
+  var_i0 += var_i1;
   var_i1 = var_p0;
   var_i1 = i32_load(&instance->w2c_memory, (u64)(var_i1) + 12u);
   var_l2 = var_i1;
-  var_i2 = var_l3;
+  var_i0 = var_i0 >= var_i1;
+  if (var_i0) {goto var_B0;}
+  var_i0 = var_p0;
+  var_i1 = var_p0;
+  var_j1 = i64_load(&instance->w2c_memory, (u64)(var_i1));
+  var_j2 = 32ull;
+  var_j1 >>= (var_j2 & 63);
+  var_l3 = var_j1;
+  i64_store(&instance->w2c_memory, (u64)(var_i0), var_j1);
+  var_i0 = var_p0;
+  var_i1 = var_p0;
+  var_i1 = i32_load(&instance->w2c_memory, (u64)(var_i1) + 20u);
+  var_i2 = 4294967264u;
+  var_i1 += var_i2;
+  i32_store(&instance->w2c_memory, (u64)(var_i0) + 20, var_i1);
+  var_i0 = var_p0;
+  var_i0 = i32_load(&instance->w2c_memory, (u64)(var_i0) + 8u);
+  var_i1 = var_l1;
+  var_i0 += var_i1;
+  var_j0 = i64_load32_u(&instance->w2c_memory, (u64)(var_i0));
+  var_l4 = var_j0;
+  var_i0 = var_p0;
+  var_i1 = var_l1;
+  var_i2 = 4u;
+  var_i1 += var_i2;
+  i32_store(&instance->w2c_memory, (u64)(var_i0) + 16, var_i1);
+  var_i0 = var_p0;
+  var_j1 = var_l4;
+  var_j2 = 32ull;
+  var_j1 <<= (var_j2 & 63);
+  var_j2 = var_l3;
+  var_j1 |= var_j2;
+  i64_store(&instance->w2c_memory, (u64)(var_i0), var_j1);
+  goto var_Bfunc;
+  var_B0:;
+  var_i0 = var_p0;
+  var_i0 = i32_load(&instance->w2c_memory, (u64)(var_i0) + 20u);
+  var_l5 = var_i0;
+  var_i1 = 8u;
+  var_i0 = (u32)((s32)var_i0 >= (s32)var_i1);
+  if (var_i0) {goto var_B2;}
+  var_i0 = var_l5;
+  var_l6 = var_i0;
+  goto var_B1;
+  var_B2:;
+  var_i0 = var_l1;
+  var_i1 = var_l2;
+  var_i2 = var_l1;
   var_i3 = var_l2;
   var_i2 = var_i2 > var_i3;
   var_i0 = var_i2 ? var_i0 : var_i1;
-  var_l4 = var_i0;
-  var_L2: 
-    var_i0 = var_l4;
-    var_i1 = var_l3;
+  var_l7 = var_i0;
+  var_L3: 
+    var_i0 = var_l7;
+    var_i1 = var_l1;
     var_i0 = var_i0 != var_i1;
-    if (var_i0) {goto var_B3;}
-    var_i0 = var_l1;
-    var_l2 = var_i0;
-    goto var_B0;
-    var_B3:;
+    if (var_i0) {goto var_B4;}
+    var_i0 = var_l7;
+    var_l1 = var_i0;
+    var_i0 = var_l5;
+    var_l6 = var_i0;
+    goto var_B1;
+    var_B4:;
     var_i0 = var_p0;
     var_i1 = var_p0;
     var_j1 = i64_load(&instance->w2c_memory, (u64)(var_i1));
     var_j2 = 8ull;
     var_j1 >>= (var_j2 & 63);
-    var_l5 = var_j1;
+    var_l3 = var_j1;
     i64_store(&instance->w2c_memory, (u64)(var_i0), var_j1);
     var_i0 = var_p0;
     var_i0 = i32_load(&instance->w2c_memory, (u64)(var_i0) + 8u);
-    var_i1 = var_l3;
+    var_i1 = var_l1;
     var_i0 += var_i1;
     var_j0 = i64_load8_u(&instance->w2c_memory, (u64)(var_i0));
-    var_l6 = var_j0;
+    var_l4 = var_j0;
     var_i0 = var_p0;
-    var_i1 = var_l1;
+    var_i1 = var_l5;
     var_i2 = 4294967288u;
     var_i1 += var_i2;
-    var_l2 = var_i1;
+    var_l6 = var_i1;
     i32_store(&instance->w2c_memory, (u64)(var_i0) + 20, var_i1);
     var_i0 = var_p0;
-    var_i1 = var_l3;
+    var_i1 = var_l1;
     var_i2 = 1u;
     var_i1 += var_i2;
-    var_l3 = var_i1;
+    var_l1 = var_i1;
     i32_store(&instance->w2c_memory, (u64)(var_i0) + 16, var_i1);
     var_i0 = var_p0;
-    var_j1 = var_l6;
+    var_j1 = var_l4;
     var_j2 = 56ull;
     var_j1 <<= (var_j2 & 63);
-    var_j2 = var_l5;
+    var_j2 = var_l3;
     var_j1 |= var_j2;
     i64_store(&instance->w2c_memory, (u64)(var_i0), var_j1);
-    var_i0 = var_l1;
+    var_i0 = var_l5;
     var_i1 = 15u;
     var_i0 = (u32)((s32)var_i0 > (s32)var_i1);
-    var_l7 = var_i0;
-    var_i0 = var_l2;
-    var_l1 = var_i0;
-    var_i0 = var_l7;
-    if (var_i0) {goto var_L2;}
-  var_B0:;
+    var_l8 = var_i0;
+    var_i0 = var_l6;
+    var_l5 = var_i0;
+    var_i0 = var_l8;
+    if (var_i0) {goto var_L3;}
+  var_B1:;
   var_i0 = var_p0;
   var_i0 = i32_load(&instance->w2c_memory, (u64)(var_i0) + 24u);
-  if (var_i0) {goto var_B5;}
-  var_i0 = var_l2;
+  if (var_i0) {goto var_B6;}
+  var_i0 = var_l6;
   var_i1 = 65u;
   var_i0 = (u32)((s32)var_i0 < (s32)var_i1);
-  if (var_i0) {goto var_B4;}
-  var_i0 = var_p0;
-  var_i0 = i32_load(&instance->w2c_memory, (u64)(var_i0) + 16u);
-  var_i1 = var_p0;
-  var_i1 = i32_load(&instance->w2c_memory, (u64)(var_i1) + 12u);
+  if (var_i0) {goto var_B5;}
+  var_i0 = var_l1;
+  var_i1 = var_l2;
   var_i0 = var_i0 != var_i1;
-  if (var_i0) {goto var_B4;}
-  var_B5:;
+  if (var_i0) {goto var_B5;}
+  var_B6:;
   var_i0 = var_p0;
   var_j1 = 4294967296ull;
   i64_store(&instance->w2c_memory, (u64)(var_i0) + 20, var_j1);
-  var_B4:;
+  var_B5:;
+  var_Bfunc:;
   FUNC_EPILOGUE;
 }
 
