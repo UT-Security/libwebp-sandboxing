@@ -254,7 +254,8 @@ void VP8LEncDspInit(void);
 
 
 // Explicitly define functions that were previously called indirectly
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+
 
 void PredictorAdd1_C(const uint32_t* in, const uint32_t* upper,
                             int num_pixels, uint32_t* out);
@@ -295,7 +296,7 @@ void PredictorAdd12_C(const uint32_t* in, const uint32_t* upper,
 void PredictorAdd13_C(const uint32_t* in, const uint32_t* upper,
                             int num_pixels, uint32_t* out);
 
-#if defined(WEBP_WASM_LOSSLESS_SIMD_DIRECT_CALL)
+#if defined(WEBP_WASMSIMD_DIRECT_FUNCTION_CALL)
 void PredictorAdd0_SSE2(const uint32_t* in, const uint32_t* upper,
                                int num_pixels, uint32_t* out);
 void PredictorAdd1_SSE2(const uint32_t* in, const uint32_t* upper,
@@ -341,8 +342,8 @@ void ConvertBGRAToRGB_SSE41(const uint32_t* src, int num_pixels,
 void ConvertBGRAToBGR_SSE41(const uint32_t* src,
                                    int num_pixels, uint8_t* dst);
 
-#endif // WEBP_WASM_LOSSLESS_SIMD_DIRECT_CALL
-#endif // WEBP_WASM_LOSSLESS_DIRECT_CALL
+#endif // WEBP_WASMSIMD_DIRECT_FUNCTION_CALL
+#endif // WEBP_WASM_DIRECT_FUNCTION_CALL
 
 
 

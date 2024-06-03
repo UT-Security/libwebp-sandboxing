@@ -70,7 +70,7 @@
 #define VP8PredChroma8DCNoTopLeft DC8uvNoTopLeft_C
 
 // Direct SIMDe functions
-#if defined(WEBP_WASM_LOSSY_DIRECT_FUNCTION_CALL)
+#if defined(WEBP_WASMSIMD_DIRECT_FUNCTION_CALL)
 #undef VP8Transform
 
 #define VP8Transform              Transform_SSE2

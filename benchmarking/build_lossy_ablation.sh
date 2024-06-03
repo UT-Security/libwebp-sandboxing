@@ -13,18 +13,26 @@ gentitle() {
 
     if [ "$BITSIZE" = "56" ]; then
         result="${result}_BITS56"
+    else
+        result="${result}_BITS24"
     fi
 
     if [ "$USE_GENERIC_TREE" = "0" ]; then
         result="${result}_USE_GENERIC_TREE0"
+    else
+        result="${result}_USE_GENERIC_TREE1"
     fi
 
     if [ "$DIRECT_CALL" = "true" ]; then
-        result="${result}_DIRECTCALL"
+        result="${result}_DIRECT_CALL1"
+    else
+        result="${result}_DIRECT_CALL0"
     fi
 
     if [ "$ALIAS_VP8PARSEINTRAMODE" = "true" ]; then
-        result="${result}_ALIASVP8PARSEINTRAMODEROW"
+        result="${result}_ALIASVP8PARSEINTRAMODEROW1"
+    else
+        result="${result}_ALIASVP8PARSEINTRAMODEROW0"
     fi
 }
 

@@ -503,6 +503,16 @@ extern WebPUnfilterFunc WebPUnfilters[WEBP_FILTER_LAST];
 void VP8FiltersInit(void);
 
 //------------------------------------------------------------------------------
+// WEBP_STATIC
+
+// Removes the static qualifier to make functions visible for direct calls. 
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
+#define WEBP_STATIC
+#else
+#define WEBP_STATIC static
+#endif
+
+//------------------------------------------------------------------------------
 // WASM Direct function call definitions
 
 // Explicitly define functions that were previously called indirectly
@@ -572,7 +582,7 @@ void DC8uvNoLeft_C(uint8_t* dst);
 void DC8uvNoTopLeft_C(uint8_t* dst);
 
 // Define SIMDe functions
-#if defined(WEBP_WASM_LOSSY_DIRECT_FUNCTION_CALL)
+#if defined(WEBP_WASMSIMD_DIRECT_FUNCTION_CALL)
 void Transform_SSE2(const int16_t* in, uint8_t* dst, int do_two);
 
 void SimpleHFilter16_SSE2(uint8_t* p, int stride, int thresh);
@@ -625,7 +635,7 @@ void DC8uvNoTopLeft_SSE2(uint8_t* dst);
 
 
 void HE16_SSE41(uint8_t* dst);
-#endif // WEBP_WASM_LOSSY_DIRECT_FUNCTION_CALL
+#endif // WEBP_WASMSIMD_DIRECT_FUNCTION_CALL
 #endif // WEBP_WASM_DIRECT_FUNCTION_CALL
 
 #ifdef __cplusplus

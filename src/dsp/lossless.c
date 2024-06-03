@@ -23,7 +23,7 @@
 #include "src/dsp/lossless.h"
 #include "src/dsp/lossless_common.h"
 
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
 
 #define PredictorAdd0  PredictorAdd0_C
 #define PredictorAdd1  PredictorAdd1_C
@@ -50,7 +50,13 @@
 #define ConvertBGRAToBGR VP8LConvertBGRAToBGR_C
 
 // Direct SIMDe functions
-#if defined(WEBP_WASM_LOSSLESS_SIMD_DIRECT_CALL)
+#if defined(WEBP_WASMSIMD_DIRECT_FUNCTION_CALL)
+
+// The autovectorized versions of the 
+// following functions outperform the SSE
+// Intrinsic versions:
+// - PredictorAdd11
+// - TransformColorInverse
 
 #undef PredictorAdd0
 #undef PredictorAdd1
@@ -63,7 +69,6 @@
 #undef PredictorAdd8
 #undef PredictorAdd9
 #undef PredictorAdd10
-//#undef PredictorAdd11
 #undef PredictorAdd12
 #undef PredictorAdd13
 
@@ -78,15 +83,8 @@
 #define PredictorAdd8  PredictorAdd8_SSE2
 #define PredictorAdd9  PredictorAdd9_SSE2
 #define PredictorAdd10 PredictorAdd10_SSE2
-//#define PredictorAdd11 PredictorAdd11_SSE2
 #define PredictorAdd12 PredictorAdd12_SSE2
 #define PredictorAdd13 PredictorAdd13_SSE2
-
-//#undef PredictorAdd11
-//#define PredictorAdd11 PredictorAdd11_NEON
-
-//#undef TransformColorInverse
-//#define TransformColorInverse TransformColorInverse_SSE41
 
 #undef AddGreenToBlueAndRed
 #define AddGreenToBlueAndRed AddGreenToBlueAndRed_SSE2
@@ -100,8 +98,8 @@
 #undef ConvertBGRAToBGR
 #define ConvertBGRAToBGR ConvertBGRAToBGR_SSE41
 
-#endif /* WEBP_WASM_LOSSLESS_SIMD_DIRECT_CALL */
-#endif /* WEBP_WASM_LOSSLESS_DIRECT_CALL */
+#endif /* WEBP_WASMSIMD_DIRECT_FUNCTION_CALL */
+#endif /* WEBP_WASM_DIRECT_FUNCTION_CALL */
 
 
 //------------------------------------------------------------------------------
@@ -268,10 +266,7 @@ static void PredictorAdd0_C(const uint32_t* in, const uint32_t* upper,
   (void)upper;
   for (x = 0; x < num_pixels; ++x) out[x] = VP8LAddPixels(in[x], ARGB_BLACK);
 }
-#if !defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
-static
-#endif
-void PredictorAdd1_C(const uint32_t* in, const uint32_t* upper,
+WEBP_STATIC void PredictorAdd1_C(const uint32_t* in, const uint32_t* upper,
                             int num_pixels, uint32_t* out) {
   int i;
   uint32_t left = out[-1];
@@ -280,20 +275,6 @@ void PredictorAdd1_C(const uint32_t* in, const uint32_t* upper,
     out[i] = left = VP8LAddPixels(in[i], left);
   }
 }
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
-GENERATE_PREDICTOR_ADD_NON_STATIC(VP8LPredictor2_C, PredictorAdd2_C)
-GENERATE_PREDICTOR_ADD_NON_STATIC(VP8LPredictor3_C, PredictorAdd3_C)
-GENERATE_PREDICTOR_ADD_NON_STATIC(VP8LPredictor4_C, PredictorAdd4_C)
-GENERATE_PREDICTOR_ADD_NON_STATIC(VP8LPredictor5_C, PredictorAdd5_C)
-GENERATE_PREDICTOR_ADD_NON_STATIC(VP8LPredictor6_C, PredictorAdd6_C)
-GENERATE_PREDICTOR_ADD_NON_STATIC(VP8LPredictor7_C, PredictorAdd7_C)
-GENERATE_PREDICTOR_ADD_NON_STATIC(VP8LPredictor8_C, PredictorAdd8_C)
-GENERATE_PREDICTOR_ADD_NON_STATIC(VP8LPredictor9_C, PredictorAdd9_C)
-GENERATE_PREDICTOR_ADD_NON_STATIC(VP8LPredictor10_C, PredictorAdd10_C)
-GENERATE_PREDICTOR_ADD_NON_STATIC(VP8LPredictor11_C, PredictorAdd11_C)
-GENERATE_PREDICTOR_ADD_NON_STATIC(VP8LPredictor12_C, PredictorAdd12_C)
-GENERATE_PREDICTOR_ADD_NON_STATIC(VP8LPredictor13_C, PredictorAdd13_C)
-#else
 GENERATE_PREDICTOR_ADD(VP8LPredictor2_C, PredictorAdd2_C)
 GENERATE_PREDICTOR_ADD(VP8LPredictor3_C, PredictorAdd3_C)
 GENERATE_PREDICTOR_ADD(VP8LPredictor4_C, PredictorAdd4_C)
@@ -306,7 +287,6 @@ GENERATE_PREDICTOR_ADD(VP8LPredictor10_C, PredictorAdd10_C)
 GENERATE_PREDICTOR_ADD(VP8LPredictor11_C, PredictorAdd11_C)
 GENERATE_PREDICTOR_ADD(VP8LPredictor12_C, PredictorAdd12_C)
 GENERATE_PREDICTOR_ADD(VP8LPredictor13_C, PredictorAdd13_C)
-#endif
 
 //------------------------------------------------------------------------------
 
@@ -349,98 +329,98 @@ static void PredictorInverseTransform_C(const VP8LTransform* const transform,
           uint32_t* p_out = out + x;
           switch (pred_idx) {
             case 0:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd0( p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[0](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 1:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd1( p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[1](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 2:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd2( p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[2](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 3:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd3( p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[3](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 4:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd4( p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[4](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 5:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd5( p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[5](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 6:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd6( p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[6](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 7:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd7( p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[7](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 8:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd8( p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[8](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 9:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd9( p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[9](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 10:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd10(p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[10](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 11:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd11(p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[11](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 12:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd12(p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[12](p_in, p_upper, p_num_pixels, p_out);
 #endif
               break;
             case 13:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd13(p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[13](p_in, p_upper, p_num_pixels, p_out);
@@ -448,7 +428,7 @@ static void PredictorInverseTransform_C(const VP8LTransform* const transform,
               break;
             case 14: /* padding security sentinels */
             case 15: 
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
               PredictorAdd0( p_in, p_upper, p_num_pixels, p_out);
 #else
               VP8LPredictorsAdd[0](p_in, p_upper, p_num_pixels, p_out);
@@ -537,7 +517,7 @@ static void ColorSpaceInverseTransform_C(const VP8LTransform* const transform,
     const uint32_t* const src_end = src + width;
     while (src < src_safe_end) {
       ColorCodeToMultipliers(*pred++, &m);
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
       TransformColorInverse(&m, src, tile_width, dst);
 #else
       VP8LTransformColorInverse(&m, src, tile_width, dst);
@@ -547,7 +527,7 @@ static void ColorSpaceInverseTransform_C(const VP8LTransform* const transform,
     }
     if (src < src_end) {  // Left-overs using C-version.
       ColorCodeToMultipliers(*pred++, &m);
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
       TransformColorInverse(&m, src, remaining_width, dst);
 #else
       VP8LTransformColorInverse(&m, src, remaining_width, dst);
@@ -618,7 +598,7 @@ void VP8LInverseTransform(const VP8LTransform* const transform,
   assert(row_end <= transform->ysize_);
   switch (transform->type_) {
     case SUBTRACT_GREEN_TRANSFORM:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
       AddGreenToBlueAndRed(in, (row_end - row_start) * width, out);
 #else
       VP8LAddGreenToBlueAndRed(in, (row_end - row_start) * width, out);
@@ -753,14 +733,14 @@ void VP8LConvertFromBGRA(const uint32_t* const in_data, int num_pixels,
                          WEBP_CSP_MODE out_colorspace, uint8_t* const rgba) {
   switch (out_colorspace) {
     case MODE_RGB:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
       ConvertBGRAToRGB(in_data, num_pixels, rgba);
 #else
       VP8LConvertBGRAToRGB(in_data, num_pixels, rgba);
 #endif
       break;
     case MODE_RGBA:
-#if defined(WEBP_WASM_LOSSLESS_DIRECT_CALL)
+#if defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
       ConvertBGRAToRGBA(in_data, num_pixels, rgba);
 #else
       VP8LConvertBGRAToRGBA(in_data, num_pixels, rgba);

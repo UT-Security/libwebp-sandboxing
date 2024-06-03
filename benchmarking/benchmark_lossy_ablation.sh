@@ -7,22 +7,30 @@ gentitle() {
     local DIRECT_CALL=$3
     local ALIAS_VP8PARSEINTRAMODE=$4
 
-    title="baseline_lossy"
+    result="baseline_lossy"
 
-    if [ "$BITSIZE" = "24" ]; then
-        title="${title}_BITS56"
+    if [ "$BITSIZE" = "56" ]; then
+        result="${result}_BITS56"
+    else
+        result="${result}_BITS24"
     fi
 
-    if [ "$USE_GENERIC_TREE" = "true" ]; then
-        title="${title}_USE_GENERIC_TREE0"
+    if [ "$USE_GENERIC_TREE" = "0" ]; then
+        result="${result}_USE_GENERIC_TREE0"
+    else
+        result="${result}_USE_GENERIC_TREE1"
     fi
 
     if [ "$DIRECT_CALL" = "true" ]; then
-        title="${title}_DIRECTCALL"
+        result="${result}_DIRECT_CALL1"
+    else
+        result="${result}_DIRECT_CALL0"
     fi
 
     if [ "$ALIAS_VP8PARSEINTRAMODE" = "true" ]; then
-        title="${title}_ALIASVP8PARSEINTRAMODEROW"
+        result="${result}_ALIASVP8PARSEINTRAMODEROW1"
+    else
+        result="${result}_ALIASVP8PARSEINTRAMODEROW0"
     fi
 }
 
@@ -31,9 +39,9 @@ cur_date=$(date +%s)
 cur_dir=$(pwd)
 
 # Number of times to run the individual experiment
-N=20
+N=10
 # Number of times to decode the image
-decode_count=100
+decode_count=20
 
 indir=images/lossy
 
@@ -62,9 +70,9 @@ do
                 do
                     gentitle ${BITSIZE} ${USE_GENERIC_TREE} ${DIRECT_CALL} ${ALIAS_VP8PARSEINTRAMODE}
 
-                    echo "Starting experiment: ${title}"
-                    workdir=${hostdir}/${title}/bench/${WABT_TYPE}
-                    outdir=${resultsdir}/${WABT_TYPE}/${title}
+                    echo "Starting experiment: ${result}"
+                    workdir=${hostdir}/${result}/bench/${WABT_TYPE}
+                    outdir=${resultsdir}/${WABT_TYPE}/${result}
 
                     mkdir -p ${outdir}
                     for IMAGE in ${indir}/*.webp;
@@ -84,7 +92,7 @@ do
                         done
 
                         sha256sum ${outdir}/*.pam
-                        virtualenv/bin/python3 comp_analysis.py ${indir} ${outdir} "${title}"
+                        virtualenv/bin/python3 comp_analysis.py ${indir} ${outdir} "${result}"
                         echo "${imagename}, ${WABT_TYPE}, ${BITSIZE}, ${USE_GENERIC_TREE}, ${DIRECT_CALL}, ${ALIAS_VP8PARSEINTRAMODE}, $(tail -1 ${outdir}/unified_analysis_data.txt)" >> $combined_log
                     done
                 done

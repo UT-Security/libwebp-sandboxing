@@ -8,11 +8,15 @@ gentitle() {
     result="baseline_lossless"
 
     if [ "$FAST_LOAD" = "1" ]; then
-        result="${result}_FAST_LOAD"
+        result="${result}_FAST_LOAD1"
+    else
+        result="${result}_FAST_LOAD0"
     fi
 
     if [ "$DIRECT_CALL" = "true" ]; then
-        result="${result}_DIRECTCALL"
+        result="${result}_DIRECTCALL1"
+    else
+        result="${result}_DIRECTCALL0"
     fi
 }
 
@@ -21,9 +25,9 @@ cur_date=$(date +%s)
 cur_dir=$(pwd)
 
 # Number of times to run the individual experiment
-N=20
+N=10
 # Number of times to decode the image
-decode_count=100
+decode_count=20
 
 indir=images/lossless
 

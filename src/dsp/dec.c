@@ -82,10 +82,7 @@ static void TransformOne_C(const int16_t* in, uint8_t* dst) {
 }
 
 // Simplified transform when only in[0], in[1] and in[4] are non-zero
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void TransformAC3_C(const int16_t* in, uint8_t* dst) {
+WEBP_STATIC void TransformAC3_C(const int16_t* in, uint8_t* dst) {
   const int a = in[0] + 4;
   const int c4 = WEBP_TRANSFORM_AC3_MUL2(in[4]);
   const int d4 = WEBP_TRANSFORM_AC3_MUL1(in[4]);
@@ -98,10 +95,7 @@ void TransformAC3_C(const int16_t* in, uint8_t* dst) {
 }
 #undef STORE2
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void TransformTwo_C(const int16_t* in, uint8_t* dst, int do_two) {
+WEBP_STATIC void TransformTwo_C(const int16_t* in, uint8_t* dst, int do_two) {
   TransformOne_C(in, dst);
   if (do_two) {
     TransformOne_C(in + 16, dst + 4);
@@ -109,19 +103,13 @@ void TransformTwo_C(const int16_t* in, uint8_t* dst, int do_two) {
 }
 #endif  // !WEBP_NEON_OMIT_C_CODE
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void TransformUV_C(const int16_t* in, uint8_t* dst) {
+WEBP_STATIC void TransformUV_C(const int16_t* in, uint8_t* dst) {
   VP8Transform(in + 0 * 16, dst, 1);
   VP8Transform(in + 2 * 16, dst + 4 * BPS, 1);
 }
 
 #if !WEBP_NEON_OMIT_C_CODE
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void TransformDC_C(const int16_t* in, uint8_t* dst) {
+WEBP_STATIC void TransformDC_C(const int16_t* in, uint8_t* dst) {
   const int DC = in[0] + 4;
   int i, j;
   for (j = 0; j < 4; ++j) {
@@ -132,10 +120,7 @@ void TransformDC_C(const int16_t* in, uint8_t* dst) {
 }
 #endif  // !WEBP_NEON_OMIT_C_CODE
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void TransformDCUV_C(const int16_t* in, uint8_t* dst) {
+WEBP_STATIC void TransformDCUV_C(const int16_t* in, uint8_t* dst) {
   if (in[0 * 16]) VP8TransformDC(in + 0 * 16, dst);
   if (in[1 * 16]) VP8TransformDC(in + 1 * 16, dst + 4);
   if (in[2 * 16]) VP8TransformDC(in + 2 * 16, dst + 4 * BPS);
@@ -148,10 +133,7 @@ void TransformDCUV_C(const int16_t* in, uint8_t* dst) {
 // Paragraph 14.3
 
 #if !WEBP_NEON_OMIT_C_CODE
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void TransformWHT_C(const int16_t* in, int16_t* out) {
+WEBP_STATIC void TransformWHT_C(const int16_t* in, int16_t* out) {
   int tmp[16];
   int i;
   for (i = 0; i < 4; ++i) {
@@ -201,39 +183,24 @@ static WEBP_INLINE void TrueMotion(uint8_t* dst, int size) {
   }
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void TM4_C(uint8_t* dst)   { TrueMotion(dst, 4); }
+WEBP_STATIC void TM4_C(uint8_t* dst)   { TrueMotion(dst, 4); }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void TM8uv_C(uint8_t* dst) { TrueMotion(dst, 8); }
+WEBP_STATIC void TM8uv_C(uint8_t* dst) { TrueMotion(dst, 8); }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void TM16_C(uint8_t* dst)  { TrueMotion(dst, 16); }
+WEBP_STATIC void TM16_C(uint8_t* dst)  { TrueMotion(dst, 16); }
 
 
 //------------------------------------------------------------------------------
 // 16x16
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void VE16_C(uint8_t* dst) {     // vertical
+WEBP_STATIC void VE16_C(uint8_t* dst) {     // vertical
   int j;
   for (j = 0; j < 16; ++j) {
     memcpy(dst + j * BPS, dst - BPS, 16);
   }
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void HE16_C(uint8_t* dst) {     // horizontal
+WEBP_STATIC void HE16_C(uint8_t* dst) {     // horizontal
   int j;
   for (j = 16; j > 0; --j) {
     memset(dst, dst[-1], 16);
@@ -248,10 +215,7 @@ static WEBP_INLINE void Put16(int v, uint8_t* dst) {
   }
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void DC16_C(uint8_t* dst) {    // DC
+WEBP_STATIC void DC16_C(uint8_t* dst) {    // DC
   int DC = 16;
   int j;
   for (j = 0; j < 16; ++j) {
@@ -260,10 +224,7 @@ void DC16_C(uint8_t* dst) {    // DC
   Put16(DC >> 5, dst);
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void DC16NoTop_C(uint8_t* dst) {   // DC with top samples not available
+WEBP_STATIC void DC16NoTop_C(uint8_t* dst) {   // DC with top samples not available
   int DC = 8;
   int j;
   for (j = 0; j < 16; ++j) {
@@ -272,10 +233,7 @@ void DC16NoTop_C(uint8_t* dst) {   // DC with top samples not available
   Put16(DC >> 4, dst);
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void DC16NoLeft_C(uint8_t* dst) {  // DC with left samples not available
+WEBP_STATIC void DC16NoLeft_C(uint8_t* dst) {  // DC with left samples not available
   int DC = 8;
   int i;
   for (i = 0; i < 16; ++i) {
@@ -284,10 +242,7 @@ void DC16NoLeft_C(uint8_t* dst) {  // DC with left samples not available
   Put16(DC >> 4, dst);
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void DC16NoTopLeft_C(uint8_t* dst) {  // DC with no top and left samples
+WEBP_STATIC void DC16NoTopLeft_C(uint8_t* dst) {  // DC with no top and left samples
   Put16(0x80, dst);
 }
 #endif  // !WEBP_NEON_OMIT_C_CODE
@@ -301,10 +256,7 @@ VP8PredFunc VP8PredLuma16[NUM_B_DC_MODES];
 #define AVG2(a, b) (((a) + (b) + 1) >> 1)
 
 #if !WEBP_NEON_OMIT_C_CODE
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void VE4_C(uint8_t* dst) {    // vertical
+WEBP_STATIC void VE4_C(uint8_t* dst) {    // vertical
   const uint8_t* top = dst - BPS;
   const uint8_t vals[4] = {
     AVG3(top[-1], top[0], top[1]),
@@ -319,10 +271,7 @@ void VE4_C(uint8_t* dst) {    // vertical
 }
 #endif  // !WEBP_NEON_OMIT_C_CODE
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void HE4_C(uint8_t* dst) {    // horizontal
+WEBP_STATIC void HE4_C(uint8_t* dst) {    // horizontal
   const int A = dst[-1 - BPS];
   const int B = dst[-1];
   const int C = dst[-1 + BPS];
@@ -335,10 +284,7 @@ void HE4_C(uint8_t* dst) {    // horizontal
 }
 
 #if !WEBP_NEON_OMIT_C_CODE
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void DC4_C(uint8_t* dst) {   // DC
+WEBP_STATIC void DC4_C(uint8_t* dst) {   // DC
   uint32_t dc = 4;
   int i;
   for (i = 0; i < 4; ++i) dc += dst[i - BPS] + dst[-1 + i * BPS];
@@ -346,10 +292,7 @@ void DC4_C(uint8_t* dst) {   // DC
   for (i = 0; i < 4; ++i) memset(dst + i * BPS, dc, 4);
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void RD4_C(uint8_t* dst) {   // Down-right
+WEBP_STATIC void RD4_C(uint8_t* dst) {   // Down-right
   const int I = dst[-1 + 0 * BPS];
   const int J = dst[-1 + 1 * BPS];
   const int K = dst[-1 + 2 * BPS];
@@ -368,10 +311,7 @@ void RD4_C(uint8_t* dst) {   // Down-right
                                       DST(3, 0) = AVG3(D, C, B);
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void LD4_C(uint8_t* dst) {   // Down-Left
+WEBP_STATIC void LD4_C(uint8_t* dst) {   // Down-Left
   const int A = dst[0 - BPS];
   const int B = dst[1 - BPS];
   const int C = dst[2 - BPS];
@@ -390,10 +330,7 @@ void LD4_C(uint8_t* dst) {   // Down-Left
 }
 #endif  // !WEBP_NEON_OMIT_C_CODE
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void VR4_C(uint8_t* dst) {   // Vertical-Right
+WEBP_STATIC void VR4_C(uint8_t* dst) {   // Vertical-Right
   const int I = dst[-1 + 0 * BPS];
   const int J = dst[-1 + 1 * BPS];
   const int K = dst[-1 + 2 * BPS];
@@ -415,10 +352,7 @@ void VR4_C(uint8_t* dst) {   // Vertical-Right
   DST(3, 1) =             AVG3(B, C, D);
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void VL4_C(uint8_t* dst) {   // Vertical-Left
+WEBP_STATIC void VL4_C(uint8_t* dst) {   // Vertical-Left
   const int A = dst[0 - BPS];
   const int B = dst[1 - BPS];
   const int C = dst[2 - BPS];
@@ -440,10 +374,7 @@ void VL4_C(uint8_t* dst) {   // Vertical-Left
               DST(3, 3) = AVG3(F, G, H);
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void HU4_C(uint8_t* dst) {   // Horizontal-Up
+WEBP_STATIC void HU4_C(uint8_t* dst) {   // Horizontal-Up
   const int I = dst[-1 + 0 * BPS];
   const int J = dst[-1 + 1 * BPS];
   const int K = dst[-1 + 2 * BPS];
@@ -458,10 +389,7 @@ void HU4_C(uint8_t* dst) {   // Horizontal-Up
     DST(0, 3) = DST(1, 3) = DST(2, 3) = DST(3, 3) = L;
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void HD4_C(uint8_t* dst) {  // Horizontal-Down
+WEBP_STATIC void HD4_C(uint8_t* dst) {  // Horizontal-Down
   const int I = dst[-1 + 0 * BPS];
   const int J = dst[-1 + 1 * BPS];
   const int K = dst[-1 + 2 * BPS];
@@ -494,20 +422,14 @@ VP8PredFunc VP8PredLuma4[NUM_BMODES];
 // Chroma
 
 #if !WEBP_NEON_OMIT_C_CODE
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void VE8uv_C(uint8_t* dst) {    // vertical
+WEBP_STATIC void VE8uv_C(uint8_t* dst) {    // vertical
   int j;
   for (j = 0; j < 8; ++j) {
     memcpy(dst + j * BPS, dst - BPS, 8);
   }
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void HE8uv_C(uint8_t* dst) {    // horizontal
+WEBP_STATIC void HE8uv_C(uint8_t* dst) {    // horizontal
   int j;
   for (j = 0; j < 8; ++j) {
     memset(dst, dst[-1], 8);
@@ -523,10 +445,7 @@ static WEBP_INLINE void Put8x8uv(uint8_t value, uint8_t* dst) {
   }
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void DC8uv_C(uint8_t* dst) {     // DC
+WEBP_STATIC void DC8uv_C(uint8_t* dst) {     // DC
   int dc0 = 8;
   int i;
   for (i = 0; i < 8; ++i) {
@@ -535,10 +454,7 @@ void DC8uv_C(uint8_t* dst) {     // DC
   Put8x8uv(dc0 >> 4, dst);
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void DC8uvNoLeft_C(uint8_t* dst) {   // DC with no left samples
+WEBP_STATIC void DC8uvNoLeft_C(uint8_t* dst) {   // DC with no left samples
   int dc0 = 4;
   int i;
   for (i = 0; i < 8; ++i) {
@@ -547,10 +463,7 @@ void DC8uvNoLeft_C(uint8_t* dst) {   // DC with no left samples
   Put8x8uv(dc0 >> 3, dst);
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void DC8uvNoTop_C(uint8_t* dst) {  // DC with no top samples
+WEBP_STATIC void DC8uvNoTop_C(uint8_t* dst) {  // DC with no top samples
   int dc0 = 4;
   int i;
   for (i = 0; i < 8; ++i) {
@@ -559,10 +472,7 @@ void DC8uvNoTop_C(uint8_t* dst) {  // DC with no top samples
   Put8x8uv(dc0 >> 3, dst);
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void DC8uvNoTopLeft_C(uint8_t* dst) {    // DC with nothing
+WEBP_STATIC void DC8uvNoTopLeft_C(uint8_t* dst) {    // DC with nothing
   Put8x8uv(0x80, dst);
 }
 #endif  // !WEBP_NEON_OMIT_C_CODE
@@ -643,10 +553,7 @@ static WEBP_INLINE int NeedsFilter2_C(const uint8_t* p,
 // Simple In-loop filtering (Paragraph 15.2)
 
 #if !WEBP_NEON_OMIT_C_CODE
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void SimpleVFilter16_C(uint8_t* p, int stride, int thresh) {
+WEBP_STATIC void SimpleVFilter16_C(uint8_t* p, int stride, int thresh) {
   int i;
   const int thresh2 = 2 * thresh + 1;
   for (i = 0; i < 16; ++i) {
@@ -656,10 +563,7 @@ void SimpleVFilter16_C(uint8_t* p, int stride, int thresh) {
   }
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void SimpleHFilter16_C(uint8_t* p, int stride, int thresh) {
+WEBP_STATIC void SimpleHFilter16_C(uint8_t* p, int stride, int thresh) {
   int i;
   const int thresh2 = 2 * thresh + 1;
   for (i = 0; i < 16; ++i) {
@@ -669,10 +573,7 @@ void SimpleHFilter16_C(uint8_t* p, int stride, int thresh) {
   }
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void SimpleVFilter16i_C(uint8_t* p, int stride, int thresh) {
+WEBP_STATIC void SimpleVFilter16i_C(uint8_t* p, int stride, int thresh) {
   int k;
   for (k = 3; k > 0; --k) {
     p += 4 * stride;
@@ -680,10 +581,7 @@ void SimpleVFilter16i_C(uint8_t* p, int stride, int thresh) {
   }
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void SimpleHFilter16i_C(uint8_t* p, int stride, int thresh) {
+WEBP_STATIC void SimpleHFilter16i_C(uint8_t* p, int stride, int thresh) {
   int k;
   for (k = 3; k > 0; --k) {
     p += 4;
@@ -733,27 +631,18 @@ static WEBP_INLINE void FilterLoop24_C(uint8_t* p,
 
 #if !WEBP_NEON_OMIT_C_CODE
 // on macroblock edges
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void VFilter16_C(uint8_t* p, int stride,
+WEBP_STATIC void VFilter16_C(uint8_t* p, int stride,
                         int thresh, int ithresh, int hev_thresh) {
   FilterLoop26_C(p, stride, 1, 16, thresh, ithresh, hev_thresh);
 }
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void HFilter16_C(uint8_t* p, int stride,
+WEBP_STATIC void HFilter16_C(uint8_t* p, int stride,
                         int thresh, int ithresh, int hev_thresh) {
   FilterLoop26_C(p, 1, stride, 16, thresh, ithresh, hev_thresh);
 }
 
 // on three inner edges
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void VFilter16i_C(uint8_t* p, int stride,
+WEBP_STATIC void VFilter16i_C(uint8_t* p, int stride,
                          int thresh, int ithresh, int hev_thresh) {
   int k;
   for (k = 3; k > 0; --k) {
@@ -764,10 +653,7 @@ void VFilter16i_C(uint8_t* p, int stride,
 #endif  // !WEBP_NEON_OMIT_C_CODE
 
 #if !WEBP_NEON_OMIT_C_CODE || WEBP_NEON_WORK_AROUND_GCC
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void HFilter16i_C(uint8_t* p, int stride,
+WEBP_STATIC void HFilter16i_C(uint8_t* p, int stride,
                          int thresh, int ithresh, int hev_thresh) {
   int k;
   for (k = 3; k > 0; --k) {
@@ -779,10 +665,7 @@ void HFilter16i_C(uint8_t* p, int stride,
 
 #if !WEBP_NEON_OMIT_C_CODE
 // 8-pixels wide variant, for chroma filtering
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void VFilter8_C(uint8_t* u, uint8_t* v, int stride,
+WEBP_STATIC void VFilter8_C(uint8_t* u, uint8_t* v, int stride,
                        int thresh, int ithresh, int hev_thresh) {
   FilterLoop26_C(u, stride, 1, 8, thresh, ithresh, hev_thresh);
   FilterLoop26_C(v, stride, 1, 8, thresh, ithresh, hev_thresh);
@@ -790,10 +673,7 @@ void VFilter8_C(uint8_t* u, uint8_t* v, int stride,
 #endif  // !WEBP_NEON_OMIT_C_CODE
 
 #if !WEBP_NEON_OMIT_C_CODE || WEBP_NEON_WORK_AROUND_GCC
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void HFilter8_C(uint8_t* u, uint8_t* v, int stride,
+WEBP_STATIC void HFilter8_C(uint8_t* u, uint8_t* v, int stride,
                        int thresh, int ithresh, int hev_thresh) {
   FilterLoop26_C(u, 1, stride, 8, thresh, ithresh, hev_thresh);
   FilterLoop26_C(v, 1, stride, 8, thresh, ithresh, hev_thresh);
@@ -801,10 +681,7 @@ void HFilter8_C(uint8_t* u, uint8_t* v, int stride,
 #endif  // !WEBP_NEON_OMIT_C_CODE || WEBP_NEON_WORK_AROUND_GCC
 
 #if !WEBP_NEON_OMIT_C_CODE
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void VFilter8i_C(uint8_t* u, uint8_t* v, int stride,
+WEBP_STATIC void VFilter8i_C(uint8_t* u, uint8_t* v, int stride,
                         int thresh, int ithresh, int hev_thresh) {
   FilterLoop24_C(u + 4 * stride, stride, 1, 8, thresh, ithresh, hev_thresh);
   FilterLoop24_C(v + 4 * stride, stride, 1, 8, thresh, ithresh, hev_thresh);
@@ -812,10 +689,7 @@ void VFilter8i_C(uint8_t* u, uint8_t* v, int stride,
 #endif  // !WEBP_NEON_OMIT_C_CODE
 
 #if !WEBP_NEON_OMIT_C_CODE || WEBP_NEON_WORK_AROUND_GCC
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void HFilter8i_C(uint8_t* u, uint8_t* v, int stride,
+WEBP_STATIC void HFilter8i_C(uint8_t* u, uint8_t* v, int stride,
                         int thresh, int ithresh, int hev_thresh) {
   FilterLoop24_C(u + 4, 1, stride, 8, thresh, ithresh, hev_thresh);
   FilterLoop24_C(v + 4, 1, stride, 8, thresh, ithresh, hev_thresh);
@@ -824,10 +698,7 @@ void HFilter8i_C(uint8_t* u, uint8_t* v, int stride,
 
 //------------------------------------------------------------------------------
 
-#if !defined(WEBP_WASM_DIRECT_FUNCTION_CALL)
-static
-#endif
-void DitherCombine8x8_C(const uint8_t* dither, uint8_t* dst,
+WEBP_STATIC void DitherCombine8x8_C(const uint8_t* dither, uint8_t* dst,
                                int dst_stride) {
   int i, j;
   for (j = 0; j < 8; ++j) {
