@@ -25,8 +25,7 @@ N=20
 # Number of times to decode the image
 decode_count=100
 
-indir=inputs_one/
-infile=inputs_one/1_webp_ll.webp
+indir=images/lossless
 
 # Expecting the binaries to be in test_files
 hostdir=test_files
@@ -35,7 +34,7 @@ resultsdir=test_results
 mkdir -p ${resultsdir}
 combined_log=${resultsdir}/combined_lossless_results.csv
 
-echo "WABT_TYPE, FAST_LOAD, DIRECT_CALL, native_unchanged,nativesimd_unchanged,native,nativesimd,wasm,wasmsimd,native_unchanged_errorbar,nativesimd_unchanged_errorbar,native_errorbar,nativesimd_errorbar,wasm_errorbar,wasmsimd_errorbar" > $combined_log
+echo "IMAGE, WABT_TYPE, FAST_LOAD, DIRECT_CALL, native_unchanged,nativesimd_unchanged,native,nativesimd,wasm,wasmsimd,native_unchanged_errorbar,nativesimd_unchanged_errorbar,native_errorbar,nativesimd_errorbar,wasm_errorbar,wasmsimd_errorbar" > $combined_log
 
 for WABT_TYPE in 'combined' 'no_force_read' 'segue' 'upstream';
 do
@@ -52,24 +51,26 @@ do
             outdir=${resultsdir}/${WABT_TYPE}/${result}
 
             mkdir -p ${outdir}
-
-            for t in 'native_unchanged' 'nativesimd_unchanged' 'native' 'nativesimd' 'wasm' 'wasmsimd';
+            for IMAGE in ${indir}/*.webp;
             do
-                logname=${outdir}/benchmark_log_${t}.txt
-                imagename=${infile##*/}
-
-                for i in $(seq 1 $N)
+                imagename=${IMAGE##*/}
+                echo "Decoding ${imagename}"
+                for t in 'native_unchanged' 'nativesimd_unchanged' 'native' 'nativesimd' 'wasm' 'wasmsimd';
                 do
-                    ${workdir}/decode_webp_${t} ${indir}/${imagename} ${outdir}/${imagename}_${t}.csv ${outdir}/${imagename}_${t}.pam ${decode_count} > ${logname} 2>&1
+                    logname=${outdir}/benchmark_log_${t}.txt
+
+                    for i in $(seq 1 $N)
+                    do
+                        ${workdir}/decode_webp_${t} ${indir}/${imagename} ${outdir}/${imagename}_${t}.csv ${outdir}/${imagename}_${t}.pam ${decode_count} > ${logname} 2>&1
+                    done
+                    virtualenv/bin/python3 stat_analysis.py "${outdir}/${imagename}_${t}.csv" "${outdir}/${imagename}_${t}_stats.txt" "${imagename} with ${t}" "${outdir}/${imagename}_${t}_stats.png"
+                    #sleep 1
                 done
-                virtualenv/bin/python3 stat_analysis.py "${outdir}/${imagename}_${t}.csv" "${outdir}/${imagename}_${t}_stats.txt" "${imagename} with ${t}" "${outdir}/${imagename}_${t}_stats.png"
-                sleep 1
+
+                sha256sum ${outdir}/*.pam
+                virtualenv/bin/python3 comp_analysis.py ${indir} ${outdir} "${result}"
+                echo "${imagename}, ${WABT_TYPE}, ${FAST_LOAD}, ${DIRECT_CALL}, $(tail -1 ${outdir}/unified_analysis_data.txt)" >> $combined_log
             done
-
-            sha256sum ${outdir}/*.pam
-            virtualenv/bin/python3 comp_analysis.py ${indir} ${outdir} "${result}"
-            echo "${WABT_TYPE}, ${FAST_LOAD}, ${DIRECT_CALL}, $(tail -1 ${outdir}/unified_analysis_data.txt)" >> $combined_log
-
         done
     done
 done

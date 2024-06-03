@@ -37,8 +37,8 @@ def generate_data():
         raw_data = np.genfromtxt(results_file,delimiter='\n')
         data[f][t] = (np.mean(raw_data), raw_data)
     except FileNotFoundError:
-      print(f"Unable to find {results_file}")
-      print(f"Skipping {f}")
+      #print(f"Unable to find {results_file}")
+      #print(f"Skipping {f}")
       del data[f]
 
 

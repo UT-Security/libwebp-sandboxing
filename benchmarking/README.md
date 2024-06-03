@@ -80,7 +80,7 @@ Our primary change to libwebp to enable SIMDe is to add a new `WEBP_USE_SIMDE` d
 - We only rely on the SSE2 and SSE4.1 intrinsics, but libwebp also has intrinsics for MIPS and ARM. This requires some further testing.
 - We could rely on only `-msimd128` when compiling, but the autovectorization is not able to do as well as SSE provided intrinsics.
 
-### Bitreader Bit Size (BP): WEBP_WASM_BITSIZE
+### Bitreader Bit Size (BP): BITS=56
 When bitstream parsing, libwebp will cache some number of bytes in the VP8BitReader field `value_`. This field is made to be the size of one register, which is architecture dependent. For architectures that it is not familiar with, it defaults to `uint32_t`. In our case, this is failing to capture the 64-bit size registers of WASM, leading to unnecessary memcpys to load into `value_`.
 
 Inside of `src/utils/bit_reader_utils.h` we add a new condition to ensure the BITS definition is set to use its 64-bit representation on WASM.
