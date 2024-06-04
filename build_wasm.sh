@@ -36,7 +36,7 @@ cd ${curprefix}
 # only the feature flags, it won't work, so we clean it out :/
 make clean
 
-CFLAGS="-O2 ${WASM_COMPILER_DEFINES} -D_WASI_EMULATED_SIGNAL" \
+CFLAGS="-O2 ${WASM_COMPILER_DEFINES} -D_WASI_EMULATED_SIGNAL -msimd128" \
 	LDFLAGS="-L${WASI_SDK_PATH}/share/wasi-sysroot/lib \
 		-Wl,--no-entry \
 		-Wl,--export-all \

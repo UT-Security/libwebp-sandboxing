@@ -5,7 +5,6 @@ gentitle() {
     local BITSIZE=$1
     local USE_GENERIC_TREE=$2
     local DIRECT_CALL=$3
-    local ALIAS_VP8PARSEINTRAMODE=$4
 
     result="baseline_lossy"
 
@@ -25,12 +24,6 @@ gentitle() {
         result="${result}_DIRECT_CALL1"
     else
         result="${result}_DIRECT_CALL0"
-    fi
-
-    if [ "$ALIAS_VP8PARSEINTRAMODE" = "true" ]; then
-        result="${result}_ALIASVP8PARSEINTRAMODEROW1"
-    else
-        result="${result}_ALIASVP8PARSEINTRAMODEROW0"
     fi
 }
 
@@ -52,7 +45,7 @@ resultsdir=test_results/
 mkdir -p ${resultsdir}
 combined_log=${resultsdir}/combined_lossy_results.csv
 
-echo "IMAGE, WABT_TYPE, BITSIZE, USE_GENERIC_TREE, DIRECT_CALL, ALIAS_VP8PARSEINTRAMODE, native_unchanged,nativesimd_unchanged,native,nativesimd,wasm,wasmsimd,native_unchanged_errorbar,nativesimd_unchanged_errorbar,native_errorbar,nativesimd_errorbar,wasm_errorbar,wasmsimd_errorbar" > $combined_log
+echo "IMAGE, WABT_TYPE, BITSIZE, USE_GENERIC_TREE, DIRECT_CALL, native_unchanged,nativesimd_unchanged,native,nativesimd,wasm,wasmsimd,native_unchanged_errorbar,nativesimd_unchanged_errorbar,native_errorbar,nativesimd_errorbar,wasm_errorbar,wasmsimd_errorbar" > $combined_log
 
 for WABT_TYPE in 'combined' 'no_force_read' 'segue' 'upstream';
 do
@@ -65,37 +58,34 @@ do
             # Avoid indirect function calls by renaming functions
             for DIRECT_CALL in 'false' 'true';
             do
-                # Mimic WEBP_RESTRICT by aliasing VP8BitReader in VP8ParseIntraModeRow
-                for ALIAS_VP8PARSEINTRAMODE in 'false' 'true';
+                gentitle ${BITSIZE} ${USE_GENERIC_TREE} ${DIRECT_CALL}
+
+                echo "Starting experiment: ${result}"
+                workdir=${hostdir}/${result}/bench/${WABT_TYPE}
+                outdir=${resultsdir}/${WABT_TYPE}/${result}
+
+                mkdir -p ${outdir}
+                for IMAGE in ${indir}/*.webp;
                 do
-                    gentitle ${BITSIZE} ${USE_GENERIC_TREE} ${DIRECT_CALL} ${ALIAS_VP8PARSEINTRAMODE}
-
-                    echo "Starting experiment: ${result}"
-                    workdir=${hostdir}/${result}/bench/${WABT_TYPE}
-                    outdir=${resultsdir}/${WABT_TYPE}/${result}
-
-                    mkdir -p ${outdir}
-                    for IMAGE in ${indir}/*.webp;
+                    imagename=${IMAGE##*/}
+                    echo "Decoding ${imagename}"
+                    for t in 'native_unchanged' 'nativesimd_unchanged' 'native' 'nativesimd' 'wasm' 'wasmsimd';
                     do
-                        imagename=${IMAGE##*/}
-                        echo "Decoding ${imagename}"
-                        for t in 'native_unchanged' 'nativesimd_unchanged' 'native' 'nativesimd' 'wasm' 'wasmsimd';
+                        logname=${outdir}/benchmark_log_${t}.txt
+
+                        for i in $(seq 1 $N)
                         do
-                            logname=${outdir}/benchmark_log_${t}.txt
-
-                            for i in $(seq 1 $N)
-                            do
-                                ${workdir}/decode_webp_${t} ${indir}/${imagename} ${outdir}/${imagename}_${t}.csv ${outdir}/${imagename}_${t}.pam ${decode_count} > ${logname} 2>&1
-                            done
-                            virtualenv/bin/python3 stat_analysis.py "${outdir}/${imagename}_${t}.csv" "${outdir}/${imagename}_${t}_stats.txt" "${imagename} with ${t}" "${outdir}/${imagename}_${t}_stats.png"
-                            #sleep 1
+                            ${workdir}/decode_webp_${t} ${indir}/${imagename} ${outdir}/${imagename}_${t}.csv ${outdir}/${imagename}_${t}.pam ${decode_count} > ${logname} 2>&1
                         done
-
-                        sha256sum ${outdir}/*.pam
-                        virtualenv/bin/python3 comp_analysis.py ${indir} ${outdir} "${result}"
-                        echo "${imagename}, ${WABT_TYPE}, ${BITSIZE}, ${USE_GENERIC_TREE}, ${DIRECT_CALL}, ${ALIAS_VP8PARSEINTRAMODE}, $(tail -1 ${outdir}/unified_analysis_data.txt)" >> $combined_log
+                        virtualenv/bin/python3 stat_analysis.py "${outdir}/${imagename}_${t}.csv" "${outdir}/${imagename}_${t}_stats.txt" "${imagename} with ${t}" "${outdir}/${imagename}_${t}_stats.png"
+                        #sleep 1
                     done
+
+                    sha256sum ${outdir}/*.pam
+                    virtualenv/bin/python3 comp_analysis.py ${indir} ${outdir} "${result}"
+                    echo "${imagename}, ${WABT_TYPE}, ${BITSIZE}, ${USE_GENERIC_TREE}, ${DIRECT_CALL}, $(tail -1 ${outdir}/unified_analysis_data.txt)" >> $combined_log
                 done
+            
             done
         done
     done

@@ -1,5 +1,7 @@
 tmp/
 ablation_test.zip
 ablation_test_backup.zip
+ablation_test_no_autovec.zip
 test_results/
+backup_test_files/
 ablation_results/results.zip

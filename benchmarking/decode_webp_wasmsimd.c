@@ -90278,7 +90278,9 @@ void w2c_decode__webp__wasmsimd_PredictorAdd2_SSE2(w2c_decode__webp__wasmsimd* i
   var_i3 = var_p3;
   var_i4 = var_l6;
   var_i3 += var_i4;
-  w2c_decode__webp__wasmsimd_PredictorAdd2_C(instance, var_i0, var_i1, var_i2, var_i3);
+  var_i4 = 1059760u;
+  var_i4 = i32_load(&instance->w2c_memory, (u64)(var_i4) + 8u);
+  CALL_INDIRECT(instance->w2c_T0, void (*)(void*, u32, u32, u32, u32), w2c_decode__webp__wasmsimd_t0, var_i4, instance->w2c_T0.data[var_i4].module_instance, var_i0, var_i1, var_i2, var_i3);
   var_B4:;
   FUNC_EPILOGUE;
 }
@@ -90426,7 +90428,9 @@ void w2c_decode__webp__wasmsimd_PredictorAdd3_SSE2(w2c_decode__webp__wasmsimd* i
   var_i3 = var_p3;
   var_i4 = var_l6;
   var_i3 += var_i4;
-  w2c_decode__webp__wasmsimd_PredictorAdd3_C(instance, var_i0, var_i1, var_i2, var_i3);
+  var_i4 = 1059760u;
+  var_i4 = i32_load(&instance->w2c_memory, (u64)(var_i4) + 12u);
+  CALL_INDIRECT(instance->w2c_T0, void (*)(void*, u32, u32, u32, u32), w2c_decode__webp__wasmsimd_t0, var_i4, instance->w2c_T0.data[var_i4].module_instance, var_i0, var_i1, var_i2, var_i3);
   var_B4:;
   FUNC_EPILOGUE;
 }
@@ -90565,7 +90569,9 @@ void w2c_decode__webp__wasmsimd_PredictorAdd4_SSE2(w2c_decode__webp__wasmsimd* i
   var_i3 = var_p3;
   var_i4 = var_l4;
   var_i3 += var_i4;
-  w2c_decode__webp__wasmsimd_PredictorAdd4_C(instance, var_i0, var_i1, var_i2, var_i3);
+  var_i4 = 1059760u;
+  var_i4 = i32_load(&instance->w2c_memory, (u64)(var_i4) + 16u);
+  CALL_INDIRECT(instance->w2c_T0, void (*)(void*, u32, u32, u32, u32), w2c_decode__webp__wasmsimd_t0, var_i4, instance->w2c_T0.data[var_i4].module_instance, var_i0, var_i1, var_i2, var_i3);
   var_B4:;
   FUNC_EPILOGUE;
 }
@@ -90980,7 +90986,9 @@ void w2c_decode__webp__wasmsimd_PredictorAdd8_SSE2(w2c_decode__webp__wasmsimd* i
   var_i3 = var_p3;
   var_i4 = var_l5;
   var_i3 += var_i4;
-  w2c_decode__webp__wasmsimd_PredictorAdd8_C(instance, var_i0, var_i1, var_i2, var_i3);
+  var_i4 = 1059760u;
+  var_i4 = i32_load(&instance->w2c_memory, (u64)(var_i4) + 32u);
+  CALL_INDIRECT(instance->w2c_T0, void (*)(void*, u32, u32, u32, u32), w2c_decode__webp__wasmsimd_t0, var_i4, instance->w2c_T0.data[var_i4].module_instance, var_i0, var_i1, var_i2, var_i3);
   var_B2:;
   FUNC_EPILOGUE;
 }
@@ -91071,7 +91079,9 @@ void w2c_decode__webp__wasmsimd_PredictorAdd9_SSE2(w2c_decode__webp__wasmsimd* i
   var_i3 = var_p3;
   var_i4 = var_l8;
   var_i3 += var_i4;
-  w2c_decode__webp__wasmsimd_PredictorAdd9_C(instance, var_i0, var_i1, var_i2, var_i3);
+  var_i4 = 1059760u;
+  var_i4 = i32_load(&instance->w2c_memory, (u64)(var_i4) + 36u);
+  CALL_INDIRECT(instance->w2c_T0, void (*)(void*, u32, u32, u32, u32), w2c_decode__webp__wasmsimd_t0, var_i4, instance->w2c_T0.data[var_i4].module_instance, var_i0, var_i1, var_i2, var_i3);
   var_B2:;
   FUNC_EPILOGUE;
 }
