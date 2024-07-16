@@ -1,0 +1,155 @@
+0000000000430f10 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2>:
+  430f10:	55                   	push   %rbp
+  430f11:	41 57                	push   %r15
+  430f13:	41 56                	push   %r14
+  430f15:	53                   	push   %rbx
+  430f16:	31 d2                	xor    %edx,%edx
+  430f18:	83 f9 04             	cmp    $0x4,%ecx
+  430f1b:	0f 8c 10 01 00 00    	jl     431031 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0x121>
+  430f21:	8d 41 fc             	lea    -0x4(%rcx),%eax
+  430f24:	41 89 c2             	mov    %eax,%r10d
+  430f27:	41 c1 ea 02          	shr    $0x2,%r10d
+  430f2b:	41 83 c2 01          	add    $0x1,%r10d
+  430f2f:	41 8d 50 fc          	lea    -0x4(%r8),%edx
+  430f33:	4c 8b 77 10          	mov    0x10(%rdi),%r14
+  430f37:	66 41 0f 6e 04 16    	movd   (%r14,%rdx,1),%xmm0
+  430f3d:	66 0f 70 c0 00       	pshufd $0x0,%xmm0,%xmm0
+  430f42:	83 f8 04             	cmp    $0x4,%eax
+  430f45:	0f 82 a4 00 00 00    	jb     430fef <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0xdf>
+  430f4b:	45 89 d1             	mov    %r10d,%r9d
+  430f4e:	41 83 e1 fe          	and    $0xfffffffe,%r9d
+  430f52:	41 bb 02 00 00 00    	mov    $0x2,%r11d
+  430f58:	45 29 cb             	sub    %r9d,%r11d
+  430f5b:	41 c1 e1 02          	shl    $0x2,%r9d
+  430f5f:	45 89 c7             	mov    %r8d,%r15d
+  430f62:	89 f2                	mov    %esi,%edx
+  430f64:	66 2e 0f 1f 84 00 00 	cs nopw 0x0(%rax,%rax,1)
+  430f6b:	00 00 00 
+  430f6e:	66 90                	xchg   %ax,%ax
+  430f70:	89 d3                	mov    %edx,%ebx
+  430f72:	f3 41 0f 6f 0c 1e    	movdqu (%r14,%rbx,1),%xmm1
+  430f78:	66 0f 6f d1          	movdqa %xmm1,%xmm2
+  430f7c:	66 0f 73 fa 04       	pslldq $0x4,%xmm2
+  430f81:	66 0f fc d1          	paddb  %xmm1,%xmm2
+  430f85:	66 0f fc c2          	paddb  %xmm2,%xmm0
+  430f89:	66 0f 73 fa 08       	pslldq $0x8,%xmm2
+  430f8e:	66 0f fc d0          	paddb  %xmm0,%xmm2
+  430f92:	44 89 fb             	mov    %r15d,%ebx
+  430f95:	f3 41 0f 7f 14 1e    	movdqu %xmm2,(%r14,%rbx,1)
+  430f9b:	45 8d 77 10          	lea    0x10(%r15),%r14d
+  430f9f:	8d 42 10             	lea    0x10(%rdx),%eax
+  430fa2:	48 8b 5f 10          	mov    0x10(%rdi),%rbx
+  430fa6:	f3 0f 6f 04 03       	movdqu (%rbx,%rax,1),%xmm0
+  430fab:	66 0f 6f c8          	movdqa %xmm0,%xmm1
+  430faf:	66 0f 73 f9 04       	pslldq $0x4,%xmm1
+  430fb4:	66 0f fc c8          	paddb  %xmm0,%xmm1
+  430fb8:	66 0f 70 c2 ff       	pshufd $0xff,%xmm2,%xmm0
+  430fbd:	66 0f fc c1          	paddb  %xmm1,%xmm0
+  430fc1:	66 0f 73 f9 08       	pslldq $0x8,%xmm1
+  430fc6:	66 0f fc c8          	paddb  %xmm0,%xmm1
+  430fca:	f3 42 0f 7f 0c 33    	movdqu %xmm1,(%rbx,%r14,1)
+  430fd0:	66 0f 70 c1 ff       	pshufd $0xff,%xmm1,%xmm0
+  430fd5:	45 85 db             	test   %r11d,%r11d
+  430fd8:	0f 84 47 01 00 00    	je     431125 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0x215>
+  430fde:	41 83 c7 20          	add    $0x20,%r15d
+  430fe2:	83 c2 20             	add    $0x20,%edx
+  430fe5:	4c 8b 77 10          	mov    0x10(%rdi),%r14
+  430fe9:	41 83 c3 02          	add    $0x2,%r11d
+  430fed:	eb 81                	jmp    430f70 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0x60>
+  430fef:	ba 04 00 00 00       	mov    $0x4,%edx
+  430ff4:	45 31 c9             	xor    %r9d,%r9d
+  430ff7:	41 f6 c2 01          	test   $0x1,%r10b
+  430ffb:	0f 84 34 01 00 00    	je     431135 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0x225>
+  431001:	43 8d 04 88          	lea    (%r8,%r9,4),%eax
+  431005:	42 8d 1c 8e          	lea    (%rsi,%r9,4),%ebx
+  431009:	48 8b 7f 10          	mov    0x10(%rdi),%rdi
+  43100d:	f3 0f 6f 0c 1f       	movdqu (%rdi,%rbx,1),%xmm1
+  431012:	66 0f 6f d1          	movdqa %xmm1,%xmm2
+  431016:	66 0f 73 fa 04       	pslldq $0x4,%xmm2
+  43101b:	66 0f fc d1          	paddb  %xmm1,%xmm2
+  43101f:	66 0f fc c2          	paddb  %xmm2,%xmm0
+  431023:	66 0f 73 fa 08       	pslldq $0x8,%xmm2
+  431028:	66 0f fc d0          	paddb  %xmm0,%xmm2
+  43102c:	f3 0f 7f 14 07       	movdqu %xmm2,(%rdi,%rax,1)
+  431031:	39 ca                	cmp    %ecx,%edx
+  431033:	0f 84 07 01 00 00    	je     431140 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0x230>
+  431039:	29 d1                	sub    %edx,%ecx
+  43103b:	85 c9                	test   %ecx,%ecx
+  43103d:	0f 8e fd 00 00 00    	jle    431140 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0x230>
+  431043:	44 8d 0c 96          	lea    (%rsi,%rdx,4),%r9d
+  431047:	45 8d 04 90          	lea    (%r8,%rdx,4),%r8d
+  43104b:	41 8d 40 fc          	lea    -0x4(%r8),%eax
+  43104f:	65 8b 00             	mov    %gs:(%rax),%eax
+  431052:	45 31 d2             	xor    %r10d,%r10d
+  431055:	83 f9 01             	cmp    $0x1,%ecx
+  431058:	0f 84 8b 00 00 00    	je     4310e9 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0x1d9>
+  43105e:	41 89 ca             	mov    %ecx,%r10d
+  431061:	41 83 e2 fe          	and    $0xfffffffe,%r10d
+  431065:	45 89 d3             	mov    %r10d,%r11d
+  431068:	45 89 c6             	mov    %r8d,%r14d
+  43106b:	44 89 cf             	mov    %r9d,%edi
+  43106e:	66 90                	xchg   %ax,%ax
+  431070:	89 fb                	mov    %edi,%ebx
+  431072:	65 8b 13             	mov    %gs:(%rbx),%edx
+  431075:	89 d3                	mov    %edx,%ebx
+  431077:	81 e3 00 ff 00 ff    	and    $0xff00ff00,%ebx
+  43107d:	89 c6                	mov    %eax,%esi
+  43107f:	81 e6 00 ff 00 ff    	and    $0xff00ff00,%esi
+  431085:	01 de                	add    %ebx,%esi
+  431087:	81 e6 00 ff 00 ff    	and    $0xff00ff00,%esi
+  43108d:	81 e2 ff 00 ff 00    	and    $0xff00ff,%edx
+  431093:	25 ff 00 ff 00       	and    $0xff00ff,%eax
+  431098:	01 d0                	add    %edx,%eax
+  43109a:	25 ff 00 ff 00       	and    $0xff00ff,%eax
+  43109f:	8d 14 06             	lea    (%rsi,%rax,1),%edx
+  4310a2:	44 89 f3             	mov    %r14d,%ebx
+  4310a5:	65 89 13             	mov    %edx,%gs:(%rbx)
+  4310a8:	41 8d 56 04          	lea    0x4(%r14),%edx
+  4310ac:	8d 5f 04             	lea    0x4(%rdi),%ebx
+  4310af:	65 8b 1b             	mov    %gs:(%rbx),%ebx
+  4310b2:	89 dd                	mov    %ebx,%ebp
+  4310b4:	81 e5 00 ff 00 ff    	and    $0xff00ff00,%ebp
+  4310ba:	01 f5                	add    %esi,%ebp
+  4310bc:	81 e5 00 ff 00 ff    	and    $0xff00ff00,%ebp
+  4310c2:	81 e3 ff 00 ff 00    	and    $0xff00ff,%ebx
+  4310c8:	01 c3                	add    %eax,%ebx
+  4310ca:	81 e3 ff 00 ff 00    	and    $0xff00ff,%ebx
+  4310d0:	89 d8                	mov    %ebx,%eax
+  4310d2:	09 e8                	or     %ebp,%eax
+  4310d4:	65 89 02             	mov    %eax,%gs:(%rdx)
+  4310d7:	41 83 c6 08          	add    $0x8,%r14d
+  4310db:	83 c7 08             	add    $0x8,%edi
+  4310de:	41 83 c3 fe          	add    $0xfffffffe,%r11d
+  4310e2:	75 8c                	jne    431070 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0x160>
+  4310e4:	f6 c1 01             	test   $0x1,%cl
+  4310e7:	74 57                	je     431140 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0x230>
+  4310e9:	43 8d 0c 90          	lea    (%r8,%r10,4),%ecx
+  4310ed:	43 8d 14 91          	lea    (%r9,%r10,4),%edx
+  4310f1:	65 8b 12             	mov    %gs:(%rdx),%edx
+  4310f4:	89 d6                	mov    %edx,%esi
+  4310f6:	81 e6 00 ff 00 ff    	and    $0xff00ff00,%esi
+  4310fc:	89 c7                	mov    %eax,%edi
+  4310fe:	81 e7 00 ff 00 ff    	and    $0xff00ff00,%edi
+  431104:	01 f7                	add    %esi,%edi
+  431106:	81 e7 00 ff 00 ff    	and    $0xff00ff00,%edi
+  43110c:	81 e2 ff 00 ff 00    	and    $0xff00ff,%edx
+  431112:	25 ff 00 ff 00       	and    $0xff00ff,%eax
+  431117:	01 d0                	add    %edx,%eax
+  431119:	25 ff 00 ff 00       	and    $0xff00ff,%eax
+  43111e:	09 f8                	or     %edi,%eax
+  431120:	65 89 01             	mov    %eax,%gs:(%rcx)
+  431123:	eb 1b                	jmp    431140 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0x230>
+  431125:	44 89 ca             	mov    %r9d,%edx
+  431128:	83 ca 04             	or     $0x4,%edx
+  43112b:	41 f6 c2 01          	test   $0x1,%r10b
+  43112f:	0f 85 cc fe ff ff    	jne    431001 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0xf1>
+  431135:	44 89 ca             	mov    %r9d,%edx
+  431138:	39 ca                	cmp    %ecx,%edx
+  43113a:	0f 85 f9 fe ff ff    	jne    431039 <w2c_decode__webp__wasmsimd_PredictorAdd1_SSE2+0x129>
+  431140:	5b                   	pop    %rbx
+  431141:	41 5e                	pop    %r14
+  431143:	41 5f                	pop    %r15
+  431145:	5d                   	pop    %rbp
+  431146:	c3                   	ret
+  431147:	66 0f 1f 84 00 00 00 	nopw   0x0(%rax,%rax,1)
+  43114e:	00 00 

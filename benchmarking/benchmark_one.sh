@@ -6,12 +6,12 @@ USE_GENERIC_TREE=0
 # Avoid indirect function calls by renaming functions
 DIRECT_CALL=true
 # Mimic WEBP_RESTRICT by aliasing VP8BitReader in VP8ParseIntraModeRow
-ALIAS_VP8PARSEINTRAMODE=true
+ALIAS_VP8PARSEINTRAMODE=false
 # Use VP8L Fast Load to enable copying 4 bytes at a time
 FAST_LOAD=1
 
 ## Title for graph
-title="complete_decode_simde_all"
+title="complete_decode_simde_all_predictor11sse2"
 
 # Enable different features in both native and wasm versions
 export WASM_COMPILER_DEFINES=" " # We add a space to avoid empty string redefinition
@@ -91,8 +91,8 @@ runs=1
 # Number of times to decode the image
 decode_count=100
 
-indir=images/lossless
-infile=${indir}/1_webp_ll.webp
+indir=images/lossy/
+infile=${indir}/1.webp
 outputdirname=tmp/${cur_date}_${title}
 
 # Build the library
@@ -117,7 +117,7 @@ do
     outdir=${outputdirname}_${r}
     mkdir -p ${outdir}
 
-    for testname in 'native_unchanged' 'nativesimd_unchanged' 'native' 'nativesimd' 'wasm' 'wasmsimd';
+    for testname in 'native_unchanged' 'nativesimd_unchanged' 'native' 'nativesimd' 'wasm' 'wasmsimd' 'wasmsimd_emscripten';
     do
         echo "Running ${testname}"
         logname=${outdir}/benchmark_log_${testname}.txt

@@ -41,3 +41,4 @@ fi
 
 ./build_wasm.sh
 ./build_wasmsimd.sh
+./build_wasmsimd_emscripten.sh

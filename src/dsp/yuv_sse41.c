@@ -18,6 +18,8 @@
 #include <stdlib.h>
 #if defined(WEBP_USE_SIMDE)
 #include "simde/x86/sse4.1.h"
+#elif defined(WEBP_USE_EMSCRIPTEN_SIMD)
+#include "emscripten_simd/smmintrin.h"
 #else
 #include <smmintrin.h>
 #endif

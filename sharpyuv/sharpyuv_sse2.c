@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #if defined(WEBP_USE_SIMDE)
 #include "simde/x86/sse2.h"
+#elif defined(WEBP_USE_EMSCRIPTEN_SIMD)
+#include <emmintrin.h>
 #else
 #include <emmintrin.h>
 #endif

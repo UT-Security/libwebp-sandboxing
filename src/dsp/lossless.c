@@ -69,6 +69,7 @@
 #undef PredictorAdd8
 #undef PredictorAdd9
 #undef PredictorAdd10
+//#undef PredictorAdd11
 #undef PredictorAdd12
 #undef PredictorAdd13
 
@@ -83,6 +84,7 @@
 #define PredictorAdd8  PredictorAdd8_SSE2
 #define PredictorAdd9  PredictorAdd9_SSE2
 #define PredictorAdd10 PredictorAdd10_SSE2
+//#define PredictorAdd11 PredictorAdd11_SSE2
 #define PredictorAdd12 PredictorAdd12_SSE2
 #define PredictorAdd13 PredictorAdd13_SSE2
 

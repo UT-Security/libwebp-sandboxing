@@ -16,6 +16,8 @@
 #if defined(WEBP_USE_SSE2) && !defined(WEBP_REDUCE_SIZE)
 #if defined(WEBP_USE_SIMDE)
 #include "simde/x86/sse2.h"
+#elif defined(WEBP_USE_EMSCRIPTEN_SIMD)
+#include "emscripten_simd/emmintrin.h"
 #else
 #include <emmintrin.h>
 #endif

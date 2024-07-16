@@ -16,6 +16,7 @@ WABT_VER=combined
 endif
 
 WASM2C_BIN=${WABT_PATH}/build_${WABT_VER}/wasm2c
+WASM2WAT_BIN=${WABT_PATH}/build_${WABT_VER}/wasm2wat
 WASM2C_DEP=${WABT_PATH}/wasm2c/wasm-rt-impl.c ${WABT_PATH}/wasm2c/wasm-rt-mem-impl.c ${WABT_PATH}/wasm2c/wasm-rt-exceptions-impl.c -I${WABT_PATH}/include -I${WABT_PATH}/wasm2c -DWASM2C_NONCONFORMING_LOAD_ELISION -DWASM_RT_ALLOW_SEGUE=1 -mfsgsbase -I${SIMDE_PATH}
 WASMSIMD_FLAGS=-DENABLE_SIMD
 
@@ -71,9 +72,18 @@ decode_webp_wasmsimd.c: decode_webp_wasmsimd.wasm
 ${OUT_DIR}/decode_webp_wasmsimd: main_wasm.c decode_webp_wasmsimd.c
 	${CC} ${COMPILE_FLAGS} -o $@ $^ ${WASM2C_DEP} ${UVWASI_RESOURCES} ${WASMSIMD_FLAGS}
 
+decode_webp_wasmsimd_emscripten.wasm: decode_webp.c ../libwebp_wasmsimd_emscripten/lib/libwebp.a
+	${WASI_CLANG} ${WASI_LDFLAGS} ${WASI_FLAGS} $^ -o $@ -I../libwebp_wasmsimd_emscripten/include/ -L../libwebp_wasmsimd_emscripten/lib/ -lwebp ${OUTPUT_IMAGE} ${INCREMENTAL} ${WASI_SIMD_FLAGS}
+
+decode_webp_wasmsimd_emscripten.c: decode_webp_wasmsimd_emscripten.wasm
+	${WASM2C_BIN} $^ -o $@
+ 
+${OUT_DIR}/decode_webp_wasmsimd_emscripten: main_wasm.c decode_webp_wasmsimd_emscripten.c
+	${CC} ${COMPILE_FLAGS} -o $@ $^ ${WASM2C_DEP} ${UVWASI_RESOURCES} -DSIMD_EMSCRIPTEN
+
 native: ${OUT_DIR}/decode_webp_native ${OUT_DIR}/decode_webp_nativesimd
 
-wasm: ${OUT_DIR}/decode_webp_wasm ${OUT_DIR}/decode_webp_wasmsimd
+wasm: ${OUT_DIR}/decode_webp_wasm ${OUT_DIR}/decode_webp_wasmsimd ${OUT_DIR}/decode_webp_wasmsimd_emscripten
 
 wasmsimdnointrinsics: main_wasm.c decode_webp.c
 	${WASI_CLANG} ${WASI_LDFLAGS} ${WASI_FLAGS} decode_webp.c -o bin/decode_webp_wasmsimd_no_intrin.wasm -I../libwebp_wasmsimd_no_intrinsics/include/ -L../libwebp_wasmsimd_no_intrinsics/lib/ -lwebp ${OUTPUT_IMAGE} ${INCREMENTAL} ${WASI_SIMD_FLAGS}

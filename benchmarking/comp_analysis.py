@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 input_dir = "inputs"
 results_dir = "results"
 testname = ""
-test_types = ["native_unchanged", "nativesimd_unchanged", "native", "nativesimd", "wasm", "wasmsimd"]
-test_type_colors = {"native_unchanged": "c", "nativesimd_unchanged": "m", "native": "r", "nativesimd": "g", "wasm": "b", "wasmsimd": "y"}
+test_types = ["native_unchanged", "nativesimd_unchanged", "native", "nativesimd", "wasm", "wasmsimd", "wasmsimd_emscripten"]
+test_type_colors = {"native_unchanged": "c", "nativesimd_unchanged": "m", "native": "r", "nativesimd": "g", "wasm": "b", "wasmsimd": "y", "wasmsimd_emscripten": "purple"}
 MIN = 0.0
 MAX = 20.0
 ITERATIONS = 100.0
